@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'activity_screen.dart';
-import 'activity_syllables_screen.dart';
-import 'activity_complete_word_screen.dart'; // esta la haremos después
+import 'reading_menu_screen.dart';
 
 class ActivityMenuScreen extends StatelessWidget {
   const ActivityMenuScreen({super.key});
@@ -10,40 +8,27 @@ class ActivityMenuScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.blue.shade50,
-      appBar: AppBar(
-        title: const Text("Actividades Offline"),
-        backgroundColor: Colors.lightBlueAccent,
-        foregroundColor: Colors.white,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Center(
+
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                "Selecciona una actividad para comenzar 👇",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 40),
 
-              // 🔹 Lectura Guiada
-              _buildActivityButton(
+              const SizedBox(height: 10),
+
+              // 📚 Lectura
+              _buildCategoryCard(
                 context,
-                title: "📖 Lectura guiada",
-                color: Colors.lightBlueAccent,
+                title: "📚 Lectura",
+                description: "Actividades para desarrollar comprensión lectora",
+                color: Colors.lightBlue,
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const ActivityScreen(
-                        student: null, // puedes pasar un Student si lo deseas
-                      ),
+                      builder: (_) => const ReadingMenuScreen(),
                     ),
                   );
                 },
@@ -51,36 +36,13 @@ class ActivityMenuScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // 🔹 Ordenar Sílabas
-              _buildActivityButton(
+              // ✍️ Escritura
+              _buildCategoryCard(
                 context,
-                title: "🧩 Ordenar sílabas",
-                color: Colors.orangeAccent,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const ActivitySyllablesScreen(),
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 20),
-
-              // 🔹 Completa la palabra
-              _buildActivityButton(
-                context,
-                title: "🔠 Completa la palabra",
-                color: Colors.greenAccent.shade700,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const ActivityCompleteWordScreen(),
-                    ),
-                  );
-                },
+                title: "✍️ Escritura",
+                description: "Próximamente",
+                color: Colors.purpleAccent,
+                onTap: () {},
               ),
             ],
           ),
@@ -89,17 +51,20 @@ class ActivityMenuScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActivityButton(
+  Widget _buildCategoryCard(
     BuildContext context, {
     required String title,
+    required String description,
     required Color color,
     required VoidCallback onTap,
   }) {
+    final width = MediaQuery.of(context).size.width;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
-      child: Ink(
-        width: double.infinity,
+      child: Container(
+        padding: EdgeInsets.all(width * 0.05),
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(16),
@@ -111,17 +76,33 @@ class ActivityMenuScreen extends StatelessWidget {
             ),
           ],
         ),
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-        child: Text(
-          title,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 20,
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: width * 0.07,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 6),
+
+            Text(
+              description,
+              style: TextStyle(
+                fontSize: width * 0.045,
+                color: Colors.white,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
+
+
+

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "716477184344",
+    "project_id": "aprendemas-3b9cf",
+    "storage_bucket": "aprendemas-3b9cf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:716477184344:android:9bb14269574c95169bcd2d",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDICHodYF4Xq_BHpJkgtGXLDICYYSHqSvM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

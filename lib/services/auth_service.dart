@@ -1,51 +1,60 @@
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
-import '../models/user_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+// 👇 renombramos tu modelo local a 'LocalUser' para evitar conflicto
+import '../models/user_model.dart' as local;
 
 class AuthService {
-  static Database? _db;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  Future<Database> get database async {
-    if (_db != null) return _db!;
-    _db = await _initDB();
-    return _db!;
-  }
-
-  Future<Database> _initDB() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'aprende_auth.db');
-
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: (db, version) async {
-        await db.execute('''
-          CREATE TABLE users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE,
-            password TEXT
-          )
-        ''');
-      },
-    );
-  }
-
-  Future<User?> login(String username, String password) async {
-    final db = await database;
-    final result = await db.query(
-      'users',
-      where: 'username = ? AND password = ?',
-      whereArgs: [username, password],
-    );
-    if (result.isNotEmpty) {
-      return User.fromMap(result.first);
+  // 🔹 LOGIN
+  Future<User?> login(String correo, String password) async {
+    try {
+      final cred = await _auth.signInWithEmailAndPassword(
+        email: correo,
+        password: password,
+      );
+      return cred.user;
+    } catch (e) {
+      print("Error en login: $e");
+      return null;
     }
-    return null;
   }
 
-  Future<int> register(User user) async {
-    final db = await database;
-    return await db.insert('users', user.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace);
+  // 🔹 REGISTRO
+  Future<User?> register(local.User userData) async {
+    try {
+      final cred = await _auth.createUserWithEmailAndPassword(
+        email: userData.correo,
+        password: userData.password,
+      );
+
+      final uid = cred.user!.uid;
+
+      // 🔥 Guardar datos adicionales en Firestore
+      await _db.collection('usuarios').doc(uid).set({
+        'nombre_user': userData.username,
+        'correo_user': userData.correo,
+        'curso_user': userData.curso,
+        'edad_user': userData.edad,
+        'fecha_nac': userData.fechaNac,
+        'tipo_usuario': 'estudiante',
+        'creado_en': FieldValue.serverTimestamp(),
+      });
+
+      return cred.user;
+    } catch (e) {
+      print("Error en registro: $e");
+      rethrow;
+    }
+  }
+
+  // 🔹 LOGOUT
+  Future<void> logout() async {
+    await _auth.signOut();
   }
 }
+
+
+

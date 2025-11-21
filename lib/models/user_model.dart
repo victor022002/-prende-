@@ -1,28 +1,30 @@
 class User {
-  final int? id;
   final String username;
+  final String correo;
+  final String curso;
+  final int edad;
+  final DateTime fechaNac;
   final String password;
 
   User({
-    this.id,
     required this.username,
+    required this.correo,
+    required this.curso,
+    required this.edad,
+    required this.fechaNac,
     required this.password,
   });
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'username': username,
-      'password': password,
+      'nombre_user': username,
+      'correo_user': correo,
+      'curso_user': curso,
+      'edad_user': edad,
+      'fecha_nac': fechaNac,
+      'tipo_usuario': 'estudiante',
     };
   }
-
-  factory User.fromMap(Map<String, dynamic> map) {
-    return User(
-      id: map['id'],
-      username: map['username'],
-      password: map['password'],
-    );
-  }
 }
+
 

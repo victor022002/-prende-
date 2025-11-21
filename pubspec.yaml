@@ -1,5 +1,5 @@
 name: aprende_app
-description: Aplicación educativa @prende+ para fomentar la lectoescritura con  accesibilidad offline.
+description: Aplicación educativa @prende+ para fomentar la lectoescritura con accesibilidad offline.
 
 publish_to: 'none'
 
@@ -7,40 +7,58 @@ version: 1.0.0+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
+  
+google_fonts: ^6.3.2
 
 dependencies:
   flutter:
     sdk: flutter
 
-  # 🔹 Utilidades base
-  collection: ^1.17.0
-  english_words: ^4.0.0
-  provider: ^6.0.5
-
-  # 🔹 Base de datos local
-  sqflite: ^2.3.0
+  # 📁 Acceso a almacenamiento (guardar audio + JSON)
+  path_provider: ^2.1.4
   path: ^1.9.0
-  path_provider: ^2.1.2
-  shared_preferences: ^2.2.0
 
-  # 🔹 Interfaz y estilo
-  cupertino_icons: ^1.0.2
+  # 💾 Base de datos local para alumnos, progreso, etc.
+  sqflite: ^2.3.3
+  shared_preferences: ^2.3.2
 
-  # 🔹 Voz y texto (IA)
-  flutter_tts: ^3.8.3
-  speech_to_text: ^6.5.0
-  google_mlkit_text_recognition: ^0.11.0
+  # 🧠 Lógica y utilidades
+  collection: ^1.18.0
+  english_words: ^4.0.0
+  provider: ^6.1.2
+
+  # 🎤 TTS y IA (si sigues usando TTS en otras pantallas)
+  flutter_tts: ^4.2.3
+  speech_to_text: ^7.3.0
+  google_mlkit_text_recognition: ^0.15.0
+
+  # 🔥 Firebase (login, datos del alumno, progreso online)
+  firebase_core: ^3.4.0     
+  firebase_auth: ^5.7.0
+  cloud_firestore: ^5.6.12
+
+
+
+  # 🎨 UI
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.3.2
+  lottie: ^3.1.0
+
+  # 🌍 Localización
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^2.0.0
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
 
- # assets:
-   # - assets/audio/
-    #- assets/images/
-#
+  assets:
+    - assets/animations/Smiling_owl.json
+    - assets/animations/Sun_breathing.json
+    # - assets/audio/
+    # - assets/images/
