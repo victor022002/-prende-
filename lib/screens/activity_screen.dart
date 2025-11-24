@@ -15,7 +15,6 @@ class ActivityScreen extends StatefulWidget {
 class _ActivityScreenState extends State<ActivityScreen> {
   final FlutterTts _tts = FlutterTts();
 
-  // 🔥 Ajuste sin pausas largas
   final String _cuento = """
 Había una vez un conejo que vivía en un bosque lleno de colores,
 Cada mañana saltaba feliz mientras saludaba al sol,
@@ -89,19 +88,36 @@ Un día decidió salir a explorar y descubrió cosas maravillosas,
     });
 
     if (widget.student != null) {
-      await DatabaseService.instance.updateProgress(
-        widget.student!.id!,
-        (widget.student!.progress + 10).clamp(0, 100),
-      );
+      final st = widget.student!;
+
+      if (st.completedReading == 0) {
+        await DatabaseService.instance.updateProgress(
+          st.id!,
+          (st.progress + 10).clamp(0, 100),
+        );
+
+        await DatabaseService.instance.updateStudentField(
+          st.id!,
+          "completedReading",
+          1,
+        );
+      }
     }
 
     if (!mounted) return;
+
+    final alreadyDone =
+        widget.student != null && widget.student!.completedReading == 1;
 
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("¡Lectura terminada! 🎉"),
-        content: const Text("Ganaste +10% de progreso."),
+        content: Text(
+          alreadyDone
+              ? "Esta actividad ya estaba completada.\nNo ganaste progreso extra."
+              : "Ganaste +10% de progreso.",
+        ),
         actions: [
           TextButton(
             onPressed: () {
@@ -130,8 +146,6 @@ Un día decidió salir a explorar y descubrió cosas maravillosas,
         backgroundColor: Colors.lightBlueAccent,
         foregroundColor: Colors.white,
       ),
-
-      // ⭐⭐⭐ NUEVO DISEÑO ⭐⭐⭐
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -160,8 +174,8 @@ Un día decidió salir a explorar y descubrió cosas maravillosas,
                         return TextSpan(
                           text: "$w ",
                           style: TextStyle(
-                            fontSize: 26,          // 👶 Más grande
-                            height: 1.55,         // 👶 Más “cuento”
+                            fontSize: 26,
+                            height: 1.55,
                             color: Colors.black87,
                             fontWeight: FontWeight.w500,
                             backgroundColor: i == _currentWordIndex
@@ -175,9 +189,7 @@ Un día decidió salir a explorar y descubrió cosas maravillosas,
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
-
             ElevatedButton.icon(
               onPressed: _startReading,
               icon: const Icon(Icons.volume_up),

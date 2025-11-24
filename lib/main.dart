@@ -29,11 +29,11 @@ class AprendeApp extends StatelessWidget {
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent),
 
-        // ⭐ APLICAR FONT INFANTIL GLOBALMENTE
+        // ⭐ FONT INFANTIL GLOBAL
         textTheme: GoogleFonts.baloo2TextTheme(),
       ),
 
-      // 🔹 Soporte idioma español
+      // 🌍 Español
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -43,7 +43,7 @@ class AprendeApp extends StatelessWidget {
         Locale('es', 'ES'),
       ],
 
-      // 🔹 Auto-login
+      // 🔐 Auto-login
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {

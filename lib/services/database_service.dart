@@ -30,7 +30,9 @@ class DatabaseService {
       CREATE TABLE students (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        progress INTEGER NOT NULL
+        email TEXT NOT NULL,
+        progress INTEGER NOT NULL,
+        completedReading INTEGER NOT NULL DEFAULT 0
       )
     ''');
   }
@@ -56,8 +58,23 @@ class DatabaseService {
     );
   }
 
+  /// 🔥 Nueva función: actualizar un campo específico
+  Future<int> updateStudentField(int id, String field, dynamic value) async {
+    final db = await instance.database;
+    return await db.update(
+      'students',
+      {field: value},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
   Future<int> deleteStudent(int id) async {
     final db = await instance.database;
-    return await db.delete('students', where: 'id = ?', whereArgs: [id]);
+    return await db.delete(
+      'students',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 }

@@ -1,29 +1,39 @@
 class Student {
-  final int? id;
-  final String name;
-  final int progress;
+  int? id;
+  String name;
+  String email;
+  int progress;
+  int completedReading;
 
   Student({
     this.id,
     required this.name,
-    required this.progress,
+    required this.email,
+    this.progress = 0,
+    this.completedReading = 0,
   });
 
-  // Convertir de Map a objeto
-  factory Student.fromMap(Map<String, dynamic> map) {
-    return Student(
-      id: map['id'],
-      name: map['name'],
-      progress: map['progress'],
-    );
-  }
-
-  
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'name': name,
+      'email': email,
       'progress': progress,
+      'completedReading': completedReading,
     };
   }
+
+  factory Student.fromMap(Map<String, dynamic> map) {
+    return Student(
+      id: map['id'],
+      name: map['name'],
+      email: map['email'],
+      progress: map['progress'],
+      completedReading: map['completedReading'],
+    );
+  }
 }
+
+
+
+
