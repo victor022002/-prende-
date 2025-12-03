@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'activity_screen.dart';
+import 'stories_screen.dart';
 import 'activity_syllables_screen.dart';
 import 'activity_complete_word_screen.dart';
 
@@ -16,7 +16,6 @@ class ReadingMenuScreen extends StatelessWidget {
         foregroundColor: Colors.white,
       ),
 
-      // 🔥 FIX: Scroll + SafeArea = NO MÁS OVERFLOW
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -34,6 +33,7 @@ class ReadingMenuScreen extends StatelessWidget {
 
               const SizedBox(height: 30),
 
+              // 🔵 Lectura guiada (va a StoriesScreen)
               _buildItem(
                 context,
                 title: "📖 Lectura guiada",
@@ -42,7 +42,7 @@ class ReadingMenuScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const ActivityScreen(student: null),
+                      builder: (_) => const StoriesScreen(),
                     ),
                   );
                 },
@@ -50,6 +50,7 @@ class ReadingMenuScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
+              // 🟧 Ordenar sílabas
               _buildItem(
                 context,
                 title: "🧩 Ordenar sílabas",
@@ -66,6 +67,7 @@ class ReadingMenuScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
+              // 🟩 Completar palabra
               _buildItem(
                 context,
                 title: "🔠 Completa la palabra",
@@ -98,8 +100,6 @@ class ReadingMenuScreen extends StatelessWidget {
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 10),
-
-        // 🔥 FIX: Altura responsiva y más compacta
         padding: EdgeInsets.symmetric(
           vertical: width * 0.04,
           horizontal: width * 0.04,
@@ -110,17 +110,17 @@ class ReadingMenuScreen extends StatelessWidget {
           shape: ContinuousRectangleBorder(
             borderRadius: BorderRadius.circular(40),
           ),
-          shadows: [
+          shadows: const [
             BoxShadow(
               color: Colors.black12,
               blurRadius: 8,
-              offset: const Offset(0, 4),
+              offset: Offset(0, 4),
             ),
           ],
         ),
 
         child: Center(
-          child: FittedBox( // 🔥 FIX: evita overflow del texto
+          child: FittedBox(
             child: Text(
               title,
               style: TextStyle(
@@ -135,4 +135,3 @@ class ReadingMenuScreen extends StatelessWidget {
     );
   }
 }
-

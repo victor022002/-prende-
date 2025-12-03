@@ -11,34 +11,41 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # 🌍 Localización
+  # Localización
   flutter_localizations:
     sdk: flutter
 
-  # 🎨 UI / Fuentes / Animaciones
+  # UI / Fuentes / Animaciones
   cupertino_icons: ^1.0.8
   google_fonts: ^6.3.2
   lottie: ^3.1.0
 
-  # 📁 Archivos
+  # Archivos
   path_provider: ^2.1.4
   path: ^1.9.0
 
-  # 🔊 Voz
+  # Voz
   flutter_tts: ^4.2.3
   speech_to_text: ^7.3.0
   google_mlkit_text_recognition: ^0.15.0
 
-  # 🔥 Firebase
+  # Audio MP3
+  just_audio: ^0.9.36
+  audio_session: ^0.1.18
+
+  # Firebase
   firebase_core: ^3.4.0
   firebase_auth: ^5.7.0
   cloud_firestore: ^5.6.12
 
-  # 🧠 Lógica y estado
+  # Lógica y estado
   provider: ^6.1.2
   collection: ^1.18.0
   english_words: ^4.0.0
+
+  # SQLite
   sqflite: ^2.4.2
+  audioplayers: ^6.5.1
 
 dev_dependencies:
   flutter_test:
@@ -46,14 +53,12 @@ dev_dependencies:
 
   flutter_lints: ^3.0.0
 
-  # ⚠️ SOLO si usas generadores (AHORA MISMO NO USAS NINGUNO)
-  # build_runner solo queda instalado por si lo necesitas en el futuro
-  build_runner: ^2.4.6
-
 flutter:
   uses-material-design: true
 
   assets:
     - assets/animations/Smiling_owl.json
     - assets/animations/Sun_breathing.json
+    - assets/audio/  
+    - assets/imagenes/
 
