@@ -41,6 +41,8 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
   late String _audioAssetPath;
   late String _storyTitle;
+  late String _storyAuthor;
+  late String _storyVersion;
 
   late List<List<String>> _pages;
   late List<List<List<String>>> _pageWords;
@@ -102,6 +104,8 @@ class _ActivityScreenState extends State<ActivityScreen> {
   void _loadTioTigre() {
     _storyTitle = "TÍO TIGRE Y TÍO CONEJO";
     _audioAssetPath = 'audio/Tio_tigre_tio_conejo.mp3';
+    _storyAuthor = "Cuento tradicional de Venezuela";
+    _storyVersion = "Versión de Paola Artmann";
 
     _pages = [
       [],
@@ -193,10 +197,13 @@ class _ActivityScreenState extends State<ActivityScreen> {
     ];
   }
 
+
   // ---------------- CUENTO 2: RATITA PRESUMIDA ----------------
   void _loadRatita() {
     _storyTitle = "LA RATITA PRESUMIDA";
     _audioAssetPath = 'audio/Ratita_presumida.mp3';
+    _storyAuthor = "Cuento folclorico español";
+    _storyVersion = "Versión de Paola Artmann";
 
     _pages = [
       [],
@@ -381,9 +388,14 @@ class _ActivityScreenState extends State<ActivityScreen> {
   }
 
   // ---------------- CUENTO 3: PRÍNCIPE RANA ----------------
-  void _loadPrincipeRana() {
+void _loadPrincipeRana() {
     _storyTitle = "EL PRÍNCIPE RANA";
     _audioAssetPath = 'audio/Príncipe_rana.mp3';
+    _storyAuthor = "Cuento de los Hermanos Grimm";
+    _storyVersion = "Versión de Paola Artmann";
+
+  // (y todo tu cuento queda igual… no se toca nada más)
+
 
     _pages = [
       [],
@@ -448,7 +460,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
       // Página 3
       [
-        [51495, 82243],
+        [51495, 85000],
       ],
 
       // Página 4
@@ -872,16 +884,33 @@ class _ActivityScreenState extends State<ActivityScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 20),
-          const Text(
-            "Versión de Aprende+",
+
+          SizedBox(height: 20),
+
+          Text(
+            _storyAuthor,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 20, color: Colors.black54),
+            style: const TextStyle(
+              fontSize: 20,
+              color: Colors.black54,
+            ),
+          ),
+
+          SizedBox(height: 6),
+
+          Text(
+            _storyVersion,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 18,
+              color: Colors.black45,
+            ),
           ),
         ],
       ),
     );
   }
+
 
   Widget _buildStoryPage(int pageIndex) {
     final paragraphs = _pages[pageIndex];
