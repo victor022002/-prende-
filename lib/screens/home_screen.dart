@@ -1,6 +1,7 @@
 import 'package:aprende_app/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'activity_menu_screen.dart';
+import 'writing_menu_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -165,7 +166,12 @@ class WelcomeScreen extends StatelessWidget {
                     title: "Escritura",
                     icon: Icons.edit,
                     color: Colors.greenAccent,
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const WritingMenuScreen()),
+                      );
+                    },
                   ),
                   _buildCard(
                     context,
