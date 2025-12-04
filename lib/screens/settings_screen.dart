@@ -22,7 +22,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final ImagePicker _picker = ImagePicker();
 
   User? _user;
-  String? _fotoUrl; // ruta local o URL remota
+  String? _fotoUrl; // ruta local o URL
   bool _busy = false;
 
   @override
@@ -135,118 +135,200 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     }
 
+    final correo = user?.email ?? "Correo no disponible";
+
     return Scaffold(
       backgroundColor: Colors.blue.shade50,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(32.0),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 500),
-              child: Column(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 8),
+              Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 40),
-                  const Icon(
+                children: const [
+                  Icon(
                     Icons.settings,
-                    size: 90,
+                    size: 32,
                     color: Colors.lightBlueAccent,
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(width: 8),
                   Text(
                     "Configuración de cuenta",
                     style: TextStyle(
-                      fontSize: 26,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade800,
+                      color: Colors.black87,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    user != null
-                        ? "Sesión iniciada como:\n${user.email}"
-                        : "Usuario no identificado",
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.black54,
-                    ),
-                  ),
-                  const SizedBox(height: 26),
-                  CircleAvatar(
-                    radius: 42,
-                    backgroundColor: Colors.white,
-                    backgroundImage: avatarImage,
-                    child: avatarImage == null
-                        ? const Icon(
-                            Icons.person,
-                            size: 42,
-                            color: Colors.lightBlueAccent,
-                          )
-                        : null,
-                  ),
-                  const SizedBox(height: 18),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.photo_camera),
-                    label: Text(
-                      _busy ? "Procesando..." : "Cambiar foto de perfil",
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.lightBlueAccent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 16,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: _busy ? null : _changeProfilePhoto,
-                  ),
-                  const SizedBox(height: 14),
-                  OutlinedButton.icon(
-                    icon: const Icon(Icons.lock),
-                    label: const Text("Cambiar contraseña"),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.lightBlueAccent,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 16,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      side: const BorderSide(
-                        color: Colors.lightBlueAccent,
-                        width: 1.5,
-                      ),
-                    ),
-                    onPressed: _busy ? null : _goToChangePasswordScreen,
-                  ),
-                  const SizedBox(height: 40),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.logout),
-                    label: Text(
-                      _busy ? "Cerrando sesión..." : "Cerrar sesión",
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 16,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: _busy ? null : _logout,
-                  ),
-                  const SizedBox(height: 40),
                 ],
               ),
-            ),
+              const SizedBox(height: 24),
+
+              // Tarjeta de perfil
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 38,
+                        backgroundColor: Colors.blue.shade100,
+                        backgroundImage: avatarImage,
+                        child: avatarImage == null
+                            ? const Icon(
+                                Icons.person,
+                                size: 40,
+                                color: Colors.white,
+                              )
+                            : null,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              user != null ? "Usuario conectado" : "Sin sesión",
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              correo,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 8),
+                            TextButton.icon(
+                              onPressed:
+                                  _busy ? null : _changeProfilePhoto,
+                              icon: const Icon(
+                                Icons.photo_camera_outlined,
+                                size: 18,
+                              ),
+                              label: Text(
+                                _busy
+                                    ? "Cambiando foto..."
+                                    : "Cambiar foto de perfil",
+                              ),
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                foregroundColor: Colors.lightBlueAccent,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Sección Seguridad
+              Text(
+                "Seguridad",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade800,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(
+                        Icons.lock_outline,
+                        color: Colors.lightBlueAccent,
+                      ),
+                      title: const Text("Cambiar contraseña"),
+                      subtitle: const Text(
+                        "Actualiza tu contraseña de acceso",
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: _busy ? null : _goToChangePasswordScreen,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Sección Sesión
+              Text(
+                "Sesión",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade800,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  child: Column(
+                    children: [
+                      const Text(
+                        "Si cierras sesión deberás volver a iniciar con tu correo y contraseña.",
+                        style: TextStyle(fontSize: 13, color: Colors.black54),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.logout),
+                          label: Text(
+                            _busy ? "Cerrando sesión..." : "Cerrar sesión",
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.redAccent,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 14,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: _busy ? null : _logout,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 32),
+            ],
           ),
         ),
       ),

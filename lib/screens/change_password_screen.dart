@@ -67,29 +67,23 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         throw "Usuario no autenticado.";
       }
 
-      // Reautenticar
       final cred = EmailAuthProvider.credential(
         email: user.email!,
         password: current,
       );
       await user.reauthenticateWithCredential(cred);
 
-      // Actualizar contraseña
       await user.updatePassword(newPass);
 
-      // Firestore: marcar actualización
       await _firestore.collection('usuarios').doc(user.uid).set(
-        {
-          'actualizado_en': FieldValue.serverTimestamp(),
-        },
+        {'actualizado_en': FieldValue.serverTimestamp()},
         SetOptions(merge: true),
       );
 
-      // SQLite: mantener coherencia
       await DatabaseService.instance.upsertUserProfile(
         uid: user.uid,
-        email: user.email ?? '',
-        fotoUrl: null, // no tocamos la foto aquí
+        email: user.email!,
+        fotoUrl: null,
       );
 
       if (!mounted) return;
@@ -100,13 +94,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         ),
       );
 
-      Navigator.pop(context); // volver a Configuración
+      Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("No se pudo cambiar la contraseña: $e"),
-        ),
+        SnackBar(content: Text("No se pudo cambiar la contraseña: $e")),
       );
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -120,57 +113,103 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       appBar: AppBar(
         title: const Text("Cambiar contraseña"),
         backgroundColor: Colors.lightBlueAccent,
+        foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            TextField(
-              controller: _currentCtrl,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: "Contraseña actual",
-                border: OutlineInputBorder(),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _newCtrl,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: "Nueva contraseña",
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _repeatCtrl,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: "Repetir nueva contraseña",
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.save),
-                label: Text(_busy ? "Procesando..." : "Guardar"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.lightBlueAccent,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 14,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.lock_reset,
+                      size: 60,
+                      color: Colors.lightBlueAccent,
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      "Actualiza tu contraseña",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      "Por seguridad, te pediremos tu contraseña actual antes de establecer una nueva.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    const SizedBox(height: 22),
+
+                    TextField(
+                      controller: _currentCtrl,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: "Contraseña actual",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    TextField(
+                      controller: _newCtrl,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: "Nueva contraseña",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    TextField(
+                      controller: _repeatCtrl,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: "Repetir nueva contraseña",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.save),
+                        label: Text(
+                          _busy ? "Procesando..." : "Guardar contraseña",
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.lightBlueAccent,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: _busy ? null : _changePassword,
+                      ),
+                    ),
+                  ],
                 ),
-                onPressed: _busy ? null : _changePassword,
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
