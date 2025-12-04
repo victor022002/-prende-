@@ -20,8 +20,9 @@ class DatabaseService {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -35,6 +36,28 @@ class DatabaseService {
         completedReading INTEGER NOT NULL DEFAULT 0
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE user_profile (
+        uid TEXT PRIMARY KEY,
+        email TEXT NOT NULL,
+        foto_url TEXT,
+        updated_at INTEGER
+      )
+    ''');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS user_profile (
+          uid TEXT PRIMARY KEY,
+          email TEXT NOT NULL,
+          foto_url TEXT,
+          updated_at INTEGER
+        )
+      ''');
+    }
   }
 
   Future<int> addStudent(Student student) async {
@@ -58,7 +81,6 @@ class DatabaseService {
     );
   }
 
-  /// 🔥 Nueva función: actualizar un campo específico
   Future<int> updateStudentField(int id, String field, dynamic value) async {
     final db = await instance.database;
     return await db.update(
@@ -76,5 +98,36 @@ class DatabaseService {
       where: 'id = ?',
       whereArgs: [id],
     );
+  }
+
+  Future<void> upsertUserProfile({
+    required String uid,
+    required String email,
+    String? fotoUrl,
+  }) async {
+    final db = await instance.database;
+
+    await db.insert(
+      'user_profile',
+      {
+        'uid': uid,
+        'email': email,
+        'foto_url': fotoUrl,
+        'updated_at': DateTime.now().millisecondsSinceEpoch,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<Map<String, dynamic>?> getUserProfile(String uid) async {
+    final db = await instance.database;
+    final rows = await db.query(
+      'user_profile',
+      where: 'uid = ?',
+      whereArgs: [uid],
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    return rows.first;
   }
 }

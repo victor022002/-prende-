@@ -1,14 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// 👇 renombramos tu modelo local a 'LocalUser' para evitar conflicto
 import '../models/user_model.dart' as local;
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // 🔹 LOGIN
   Future<User?> login(String correo, String password) async {
     try {
       final cred = await _auth.signInWithEmailAndPassword(
@@ -22,7 +20,6 @@ class AuthService {
     }
   }
 
-  // 🔹 REGISTRO
   Future<User?> register(local.User userData) async {
     try {
       final cred = await _auth.createUserWithEmailAndPassword(
@@ -32,7 +29,6 @@ class AuthService {
 
       final uid = cred.user!.uid;
 
-      // 🔥 Guardar datos adicionales en Firestore
       await _db.collection('usuarios').doc(uid).set({
         'nombre_user': userData.username,
         'correo_user': userData.correo,
@@ -40,6 +36,7 @@ class AuthService {
         'edad_user': userData.edad,
         'fecha_nac': userData.fechaNac,
         'tipo_usuario': 'estudiante',
+        'foto_url': null,
         'creado_en': FieldValue.serverTimestamp(),
       });
 
@@ -50,7 +47,6 @@ class AuthService {
     }
   }
 
-  // 🔹 LOGOUT
   Future<void> logout() async {
     await _auth.signOut();
   }
