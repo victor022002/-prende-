@@ -139,6 +139,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       backgroundColor: Colors.blue.shade50,
+
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
@@ -147,24 +148,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               const SizedBox(height: 8),
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(
-                    Icons.settings,
-                    size: 32,
-                    color: Colors.lightBlueAccent,
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    "Configuración de cuenta",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ],
-              ),
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: [
+    const Icon(
+      Icons.settings,
+      size: 32,
+      color: Colors.lightBlueAccent,
+    ),
+    const SizedBox(width: 8),
+    Flexible(
+      child: Text(
+        "Configuración de cuenta",
+        textAlign: TextAlign.center,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+        style: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Colors.black87,
+        ),
+      ),
+    ),
+  ],
+),
               const SizedBox(height: 24),
 
               // Tarjeta de perfil
