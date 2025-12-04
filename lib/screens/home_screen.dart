@@ -1,7 +1,9 @@
-import 'package:aprende_app/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
+
 import 'activity_menu_screen.dart';
 import 'writing_menu_screen.dart';
+import 'settings_screen.dart';
+import 'progress_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,7 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _screens = [
     const WelcomeScreen(),
     const ActivityMenuScreen(),
-    const PlaceholderScreen(title: "Progreso"),
+    const ProgressScreen(),
     const SettingsScreen(),
   ];
 
@@ -33,11 +35,9 @@ class _HomeScreenState extends State<HomeScreen> {
           onPressed: () => setState(() => _sidebarVisible = !_sidebarVisible),
         ),
       ),
-
-      body: SafeArea( 
+      body: SafeArea(
         child: Row(
           children: [
-
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               width: _sidebarVisible ? 90 : 0,
@@ -50,7 +50,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     : const SizedBox.shrink(),
               ),
             ),
-
             Expanded(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
@@ -127,7 +126,8 @@ class WelcomeScreen extends StatelessWidget {
           child: Column(
             children: [
               const SizedBox(height: 20),
-              const Icon(Icons.menu_book, size: 80, color: Colors.lightBlueAccent),
+              const Icon(Icons.menu_book,
+                  size: 80, color: Colors.lightBlueAccent),
               const SizedBox(height: 20),
               const Text(
                 "¡Bienvenido a @prende+!",
@@ -145,7 +145,6 @@ class WelcomeScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 16, color: Colors.black54),
               ),
               const SizedBox(height: 25),
-
               Wrap(
                 alignment: WrapAlignment.center,
                 spacing: 20,
@@ -158,7 +157,9 @@ class WelcomeScreen extends StatelessWidget {
                     color: Colors.orangeAccent,
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const ActivityMenuScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => const ActivityMenuScreen(),
+                      ),
                     ),
                   ),
                   _buildCard(
@@ -169,7 +170,9 @@ class WelcomeScreen extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const WritingMenuScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const WritingMenuScreen(),
+                        ),
                       );
                     },
                   ),
@@ -186,8 +189,11 @@ class WelcomeScreen extends StatelessWidget {
                     icon: Icons.star,
                     color: Colors.pinkAccent,
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Pronto podrás ver tus logros 🏅")),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ProgressScreen(),
+                        ),
                       );
                     },
                   ),
@@ -217,8 +223,12 @@ class WelcomeScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4)),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 6,
+              offset: Offset(2, 4),
+            ),
           ],
         ),
         child: Column(
