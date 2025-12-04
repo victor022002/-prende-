@@ -10,17 +10,17 @@ class StoriesScreen extends StatelessWidget {
       {
         "id": 1,
         "title": "Tío Tigre y Tío Conejo",
-        "image": "imagenes/tiotigre.png",
+        "image": "assets/imagenes/tiotigre.png",
       },
       {
         "id": 2,
         "title": "La ratita presumida",
-        "image": "imagenes/Ratita_Presumida.jpg",
+        "image": "assets/imagenes/Ratita_Presumida.jpg",
       },
       {
         "id": 3,
         "title": "El príncipe rana",
-        "image": "imagenes/Principe_Rana.png",
+        "image": "assets/imagenes/Principe_Rana.png",
       },
     ];
 

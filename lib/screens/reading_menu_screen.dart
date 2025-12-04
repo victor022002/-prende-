@@ -32,8 +32,7 @@ class ReadingMenuScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 30),
-
-              // 🔵 Lectura guiada (va a StoriesScreen)
+              //  Lectura guiada (va a StoriesScreen)
               _buildItem(
                 context,
                 title: "📖 Lectura guiada",
@@ -50,7 +49,7 @@ class ReadingMenuScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // 🟧 Ordenar sílabas
+              //  Ordenar sílabas
               _buildItem(
                 context,
                 title: "🧩 Ordenar sílabas",
@@ -67,7 +66,7 @@ class ReadingMenuScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // 🟩 Completar palabra
+              //  Completar palabra
               _buildItem(
                 context,
                 title: "🔠 Completa la palabra",

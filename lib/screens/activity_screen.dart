@@ -957,81 +957,96 @@ void _loadPrincipeRana() {
   }
 
   // ---------------- UI QUIZ ----------------
-  Widget _buildQuizScreen() {
-    final q = _quizzes[_currentQuizIndex];
-    final selected = _userAnswers[_currentQuizIndex];
+Widget _buildQuizScreen() {
+  final q = _quizzes[_currentQuizIndex];
+  final selected = _userAnswers[_currentQuizIndex];
 
-    return Center(
-      key: const ValueKey('quiz'),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(26),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 14,
-                offset: Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "Pregunta de la página ${_currentQuizIndex + 1}",
-                style: const TextStyle(
-                    fontSize: 18, color: Colors.black54),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                q.question,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+  return SafeArea(
+    key: const ValueKey('quiz'),
+    child: SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(26),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 14,
+                  offset: Offset(0, 5),
                 ),
-              ),
-              const SizedBox(height: 16),
-              IconButton(
-                onPressed: _playQuizAudio,
-                icon: const Icon(Icons.volume_up, size: 40),
-              ),
-              const SizedBox(height: 10),
-              ...List.generate(q.options.length, (i) {
-                final isSel = selected == i;
-                return Container(
-                  margin: const EdgeInsets.symmetric(vertical: 6),
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      padding:
-                          const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor: isSel
-                          ? Colors.lightBlueAccent
-                          : Colors.blue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    onPressed: () => _onSelectQuizOption(i),
-                    child: Text(
-                      q.options[i],
-                      style: const TextStyle(
-                        fontSize: 20,
-                        color: Colors.white,
-                      ),
-                    ),
+              ],
+            ),
+
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  "Pregunta de la página ${_currentQuizIndex + 1}",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Colors.black54,
                   ),
-                );
-              }),
-            ],
+                ),
+
+                const SizedBox(height: 12),
+
+                Text(
+                  q.question,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                IconButton(
+                  onPressed: _playQuizAudio,
+                  icon: const Icon(Icons.volume_up, size: 40),
+                ),
+
+                const SizedBox(height: 20),
+
+                Column(
+                  children: List.generate(q.options.length, (i) {
+                    final isSel = selected == i;
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 14),
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor:
+                              isSel ? Colors.orangeAccent : Colors.lightBlue,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed: () => _onSelectQuizOption(i),
+                        child: Text(
+                          q.options[i],
+                          style: const TextStyle(
+                            fontSize: 20,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
