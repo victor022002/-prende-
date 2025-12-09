@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '/modulos/reading/reading_menu_screen.dart';
+import '/modulos/writing/writing_menu_screen.dart';
 
 class ActivityMenuScreen extends StatelessWidget {
   const ActivityMenuScreen({super.key});
@@ -40,9 +41,16 @@ class ActivityMenuScreen extends StatelessWidget {
               _buildCategoryCard(
                 context,
                 title: "✍️ Escritura",
-                description: "Próximamente",
+                description: "Actividades para desarrollar habilidades de escritura :sunglasses:",
                 color: Colors.purpleAccent,
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_)=> const WritingMenuScreen()
+                      ),
+                  );
+                },
               ),
             ],
           ),
