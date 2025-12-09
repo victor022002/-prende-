@@ -4,8 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'firebase_options.dart';
-import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
+import 'modulos/auth/login_screen.dart';
+import 'modulos/home/home_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

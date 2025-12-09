@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'stories_screen.dart';
-import 'activity_syllables_screen.dart';
+import '/modulos/syllables/syllables_menu_screen.dart';
 import 'activity_complete_word_screen.dart';
 
 class ReadingMenuScreen extends StatelessWidget {
@@ -58,7 +58,7 @@ class ReadingMenuScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const ActivitySyllablesScreen(),
+                      builder: (_) => const SyllablesMenuScreen(),
                     ),
                   );
                 },

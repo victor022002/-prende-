@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'activity_menu_screen.dart';
-import 'writing_menu_screen.dart';
-import 'settings_screen.dart';
-import 'progress_screen.dart';
+import '/modulos/activity/activity_menu_screen.dart';
+import '/modulos/writing/writing_menu_screen.dart';
+import '/modulos/settings/settings_screen.dart';
+import '/modulos/students/progress_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

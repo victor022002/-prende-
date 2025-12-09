@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 
-import '../models/student_model.dart';
-import '../services/database_service.dart';
+import '/models/student_model.dart';
+import '/services/database_service.dart';
 
 class QuizQuestion {
   final String question;

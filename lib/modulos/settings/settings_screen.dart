@@ -6,9 +6,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-import '../services/database_service.dart';
-import 'login_screen.dart';
-import 'change_password_screen.dart';
+import '/services/database_service.dart';
+import '/modulos/auth/login_screen.dart';
+import '/modulos/auth/change_password_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});

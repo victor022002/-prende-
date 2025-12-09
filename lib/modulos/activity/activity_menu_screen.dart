@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'reading_menu_screen.dart';
+import '/modulos/reading/reading_menu_screen.dart';
 
 class ActivityMenuScreen extends StatelessWidget {
   const ActivityMenuScreen({super.key});
