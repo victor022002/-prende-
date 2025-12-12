@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import '/modulos/reading/reading_menu_screen.dart';
 import '/modulos/writing/writing_menu_screen.dart';
+import '/models/student_model.dart';
 
 class ActivityMenuScreen extends StatelessWidget {
-  const ActivityMenuScreen({super.key});
+  final Student student;
+
+  const ActivityMenuScreen({
+    super.key,
+    required this.student,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.blue.shade50,
-
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -23,13 +28,16 @@ class ActivityMenuScreen extends StatelessWidget {
               _buildCategoryCard(
                 context,
                 title: "📚 Lectura",
-                description: "Actividades para desarrollar comprensión lectora",
+                description:
+                    "Actividades para desarrollar comprensión lectora",
                 color: Colors.lightBlue,
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const ReadingMenuScreen(),
+                      builder: (_) => ReadingMenuScreen(
+                        student: student, // ✅ MISMO alumno
+                      ),
                     ),
                   );
                 },
@@ -41,14 +49,15 @@ class ActivityMenuScreen extends StatelessWidget {
               _buildCategoryCard(
                 context,
                 title: "✍️ Escritura",
-                description: "Actividades para desarrollar habilidades de escritura :sunglasses:",
+                description:
+                    "Actividades para desarrollar habilidades de escritura 😎",
                 color: Colors.purpleAccent,
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_)=> const WritingMenuScreen()
-                      ),
+                      builder: (_) => const WritingMenuScreen(),
+                    ),
                   );
                 },
               ),
@@ -76,11 +85,11 @@ class ActivityMenuScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: Colors.black12,
               blurRadius: 6,
-              offset: const Offset(0, 3),
+              offset: Offset(0, 3),
             ),
           ],
         ),
@@ -95,9 +104,7 @@ class ActivityMenuScreen extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 6),
-
             Text(
               description,
               style: TextStyle(
@@ -111,6 +118,3 @@ class ActivityMenuScreen extends StatelessWidget {
     );
   }
 }
-
-
-

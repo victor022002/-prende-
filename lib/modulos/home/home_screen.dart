@@ -1,13 +1,19 @@
-import 'package:aprende_app/modulos/reading/reading_menu_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:aprende_app/modulos/reading/reading_menu_screen.dart';
 
 import '/modulos/activity/activity_menu_screen.dart';
 import '/modulos/writing/writing_menu_screen.dart';
 import '/modulos/settings/settings_screen.dart';
 import '/modulos/students/progress_screen.dart';
+import '/models/student_model.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final Student student;
+
+  const HomeScreen({
+    super.key,
+    required this.student,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -19,9 +25,12 @@ class _HomeScreenState extends State<HomeScreen>
   int _selectedIndex = 0;
   bool _sidebarVisible = false;
 
-  // Animación del menú deslizante
   late AnimationController _controller;
   late Animation<Offset> _slideAnimation;
+
+  late final List<Widget> _screens;
+
+  Student get currentStudent => widget.student;
 
   @override
   void initState() {
@@ -39,21 +48,20 @@ class _HomeScreenState extends State<HomeScreen>
       parent: _controller,
       curve: Curves.easeOut,
     ));
+
+    _screens = [
+      WelcomeScreen(student: currentStudent),
+      ActivityMenuScreen(student: currentStudent),
+      ProgressScreen(studentId: currentStudent.id!), // 🔑 REAL
+      const SettingsScreen(),
+    ];
   }
 
-  /// 🔵 Método para cambiar pestañas desde WelcomeScreen
   void changeTab(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
-
-  final List<Widget> _screens = [
-    const WelcomeScreen(),
-    const ActivityMenuScreen(),
-    const ProgressScreen(),
-    const SettingsScreen(),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -70,19 +78,15 @@ class _HomeScreenState extends State<HomeScreen>
           },
         ),
       ),
-
       body: Stack(
         children: [
-          /// 🟦 Pantallas principales
           SafeArea(child: _screens[_selectedIndex]),
 
-          /// 🟧 Menú deslizante
           SlideTransition(
             position: _slideAnimation,
             child: SafeArea(
               child: Container(
                 width: 250,
-                height: double.infinity,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: const BorderRadius.only(
@@ -114,9 +118,8 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  /// 🔵 Botones del menú lateral
   Widget _buildMenuItem(IconData icon, String label, int index) {
-    bool selected = _selectedIndex == index;
+    final selected = _selectedIndex == index;
 
     return ListTile(
       leading: Icon(
@@ -141,8 +144,16 @@ class _HomeScreenState extends State<HomeScreen>
 }
 
 
+/// =======================
+/// WELCOME SCREEN
+/// =======================
 class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({super.key});
+  final Student student;
+
+  const WelcomeScreen({
+    super.key,
+    required this.student,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -166,15 +177,21 @@ class WelcomeScreen extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
+
               const SizedBox(height: 10),
-              const Text(
-                "¡Bienvenido de nuevo, viajero de la lectura!",
+
+              Text(
+                "¡Bienvenido de nuevo, ${student.name} , sigamos con nuestro viaje de la lectura! 📖✨",
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.black54),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black54,
+                ),
               ),
+
+
               const SizedBox(height: 25),
 
-              /// 🟧 Cards rápidas corregidas
               Wrap(
                 alignment: WrapAlignment.center,
                 spacing: 20,
@@ -186,17 +203,16 @@ class WelcomeScreen extends StatelessWidget {
                     icon: Icons.menu_book,
                     color: Colors.orangeAccent,
                     onTap: () {
-                      // Cambia aquí la ruta según tu pantalla real de actividades
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const ReadingMenuScreen(), // si quieres otra, me dices
+                          builder: (_) => ReadingMenuScreen(
+                            student: student,
+                          ),
                         ),
                       );
                     },
                   ),
-
-
                   _buildCard(
                     context,
                     title: "Escritura",
@@ -206,18 +222,26 @@ class WelcomeScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const WritingMenuScreen()
-                          )
-                      );// si luego agregas una pestaña de escritura, cambias este índice
+                          builder: (_) => const WritingMenuScreen(),
+                        ),
+                      );
                     },
                   ),
 
+                  // 🔊 ESCUCHA (restaurado, aún no activo)
                   _buildCard(
                     context,
                     title: "Escucha",
                     icon: Icons.hearing,
                     color: Colors.purpleAccent,
-                    onTap: () {},
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Próximamente 👂🎧"),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
                   ),
 
                   _buildCard(
@@ -226,12 +250,14 @@ class WelcomeScreen extends StatelessWidget {
                     icon: Icons.star,
                     color: Colors.pinkAccent,
                     onTap: () {
-                      final home = context.findAncestorStateOfType<_HomeScreenState>();
+                      final home =
+                          context.findAncestorStateOfType<_HomeScreenState>();
                       home?.changeTab(2);
                     },
                   ),
                 ],
               ),
+
             ],
           ),
         ),
@@ -249,7 +275,6 @@ class WelcomeScreen extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
-      splashColor: Colors.white24,
       child: Container(
         width: 130,
         height: 100,

@@ -2,24 +2,21 @@ class Student {
   int? id;
   String name;
   String email;
-  int progress;
-  int completedReading;
+  DateTime createdAt;
 
   Student({
     this.id,
     required this.name,
     required this.email,
-    this.progress = 0,
-    this.completedReading = 0,
-  });
+    DateTime? createdAt,
+  }) : createdAt = createdAt ?? DateTime.now();
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'name': name,
       'email': email,
-      'progress': progress,
-      'completedReading': completedReading,
+      'created_at': createdAt.toIso8601String(),
     };
   }
 
@@ -28,11 +25,11 @@ class Student {
       id: map['id'],
       name: map['name'],
       email: map['email'],
-      progress: map['progress'],
-      completedReading: map['completedReading'],
+      createdAt: DateTime.parse(map['created_at']),
     );
   }
 }
+
 
 
 

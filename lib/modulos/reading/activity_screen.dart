@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
-
+import '/repositories/progress_repository.dart';
+import '/models/progress_model.dart';
 import '/models/student_model.dart';
-import '/services/database_service.dart';
+import '/models/activity_model.dart';
 
 class QuizQuestion {
   final String question;
@@ -21,16 +22,19 @@ class QuizQuestion {
 class ActivityScreen extends StatefulWidget {
   final int storyId;
   final Student? student;
+  final Activity activity;
 
   const ActivityScreen({
     super.key,
     required this.storyId,
+    required this.activity, 
     this.student,
   });
 
   @override
   State<ActivityScreen> createState() => _ActivityScreenState();
 }
+
 
 class _ActivityScreenState extends State<ActivityScreen> {
   final AudioPlayer _storyPlayer = AudioPlayer();
@@ -713,21 +717,28 @@ void _loadPrincipeRana() {
       final ua = _userAnswers[i];
       if (ua != null && ua == _quizzes[i].correctIndex) correct++;
     }
+    
 
     if (widget.student != null) {
-      final st = widget.student!;
-      if (st.completedReading == 0) {
-        await DatabaseService.instance.updateProgress(
-          st.id!,
-          (st.progress + 10).clamp(0, 100),
-        );
-        await DatabaseService.instance.updateStudentField(
-          st.id!,
-          "completedReading",
-          1,
-        );
-      }
+      final progressRepo = ProgressRepository();
+      print("💾 Guardando progreso:"
+      " studentId=${widget.student!.id},"
+      " activityId=${widget.activity.id}");
+      await progressRepo.saveOrUpdate(
+        Progress(
+          studentId: widget.student!.id!,
+          activityId: widget.activity.id!,
+          status: ProgressStatus.completed,
+          attempts: 1,
+          score: 100,
+          //_quizzes.isEmpty
+              //? null
+              //: (correct / _quizzes.length) * 100,
+        ),
+      );
     }
+
+
 
     if (!mounted) return;
 

@@ -2,9 +2,15 @@ import 'package:flutter/material.dart';
 import 'stories_screen.dart';
 import '/modulos/syllables/syllables_menu_screen.dart';
 import 'activity_complete_word_screen.dart';
+import '/models/student_model.dart';
 
 class ReadingMenuScreen extends StatelessWidget {
-  const ReadingMenuScreen({super.key});
+  final Student student;
+
+  const ReadingMenuScreen({
+    super.key,
+    required this.student,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +21,6 @@ class ReadingMenuScreen extends StatelessWidget {
         backgroundColor: Colors.lightBlueAccent,
         foregroundColor: Colors.white,
       ),
-
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -32,7 +37,8 @@ class ReadingMenuScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 30),
-              //  Lectura guiada (va a StoriesScreen)
+
+              // 📖 Lectura guiada
               _buildItem(
                 context,
                 title: "📖 Lectura guiada",
@@ -41,7 +47,9 @@ class ReadingMenuScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const StoriesScreen(),
+                      builder: (_) => StoriesScreen(
+                        student: student, // ✅ CLAVE
+                      ),
                     ),
                   );
                 },
@@ -49,7 +57,7 @@ class ReadingMenuScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              //  Ordenar sílabas
+              // 🧩 Ordenar sílabas
               _buildItem(
                 context,
                 title: "🧩 Ordenar sílabas",
@@ -66,7 +74,7 @@ class ReadingMenuScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              //  Completar palabra
+              // 🔠 Completa la palabra
               _buildItem(
                 context,
                 title: "🔠 Completa la palabra",
@@ -103,7 +111,6 @@ class ReadingMenuScreen extends StatelessWidget {
           vertical: width * 0.04,
           horizontal: width * 0.04,
         ),
-
         decoration: ShapeDecoration(
           color: color.withOpacity(0.85),
           shape: ContinuousRectangleBorder(
@@ -117,7 +124,6 @@ class ReadingMenuScreen extends StatelessWidget {
             ),
           ],
         ),
-
         child: Center(
           child: FittedBox(
             child: Text(

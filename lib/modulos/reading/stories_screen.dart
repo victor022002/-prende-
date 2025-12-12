@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'activity_screen.dart';
+import '/models/activity_model.dart';
+import '/models/student_model.dart';
 
 class StoriesScreen extends StatelessWidget {
-  const StoriesScreen({super.key});
+  final Student student;
+
+  const StoriesScreen({
+    super.key,
+    required this.student,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +41,7 @@ class StoriesScreen extends StatelessWidget {
       body: GridView.builder(
         padding: const EdgeInsets.all(20),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,          // 2 cards por fila
+          crossAxisCount: 2,
           childAspectRatio: 0.75,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
@@ -42,13 +49,26 @@ class StoriesScreen extends StatelessWidget {
         itemCount: stories.length,
         itemBuilder: (context, index) {
           final story = stories[index];
+
           return GestureDetector(
             onTap: () {
-              Navigator.of(context).push(_fadeRoute(
-                ActivityScreen(
-                  storyId: story["id"] as int,
+              final activity = Activity(
+                id: story["id"] as int,
+                type: ActivityType.reading,
+                title: story["title"] as String,
+                content: "",
+                level: "inicial",
+              );
+
+              Navigator.of(context).push(
+                _fadeRoute(
+                  ActivityScreen(
+                    storyId: story["id"] as int,
+                    activity: activity,
+                    student: student, // ✅ CLAVE
+                  ),
                 ),
-              ));
+              );
             },
             child: Container(
               decoration: BoxDecoration(
@@ -100,12 +120,9 @@ class StoriesScreen extends StatelessWidget {
   Route _fadeRoute(Widget page) {
     return PageRouteBuilder(
       transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (context, animation, secondaryAnimation) => page,
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        return FadeTransition(
-          opacity: animation,
-          child: child,
-        );
+      pageBuilder: (_, animation, __) => page,
+      transitionsBuilder: (_, animation, __, child) {
+        return FadeTransition(opacity: animation, child: child);
       },
     );
   }
