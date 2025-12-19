@@ -9,7 +9,7 @@ import 'modulos/auth/register_screen.dart';
 import 'modulos/home/home_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supa;
 import '/models/student_model.dart';
-
+import 'modulos/syllables/word_lists.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +24,8 @@ Future<void> main() async {
     url: 'https://eqxughixyacnyeszyjna.supabase.co',       
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxeHVnaGl4eWFjbnllc3p5am5hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyODA0OTIsImV4cCI6MjA4MDg1NjQ5Mn0.45TTu8Ar3jgkVQKV0VVtoL3vCXHz5NUynC9PgA1yYYE', 
   );
+
+  await loadAdminWordsIntoLists();
 
   runApp(const AprendeApp());
 }

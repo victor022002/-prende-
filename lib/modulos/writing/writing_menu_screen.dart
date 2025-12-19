@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import '/models/student_model.dart';
 import 'writing_screen.dart';
 
 class WritingMenuScreen extends StatelessWidget {
-  const WritingMenuScreen({super.key});
+  final Student student;
+
+  const WritingMenuScreen({
+    super.key,
+    required this.student,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,12 +39,17 @@ class WritingMenuScreen extends StatelessWidget {
                 childAspectRatio: 1.1,
                 children: vowels.map((v) {
                   return GestureDetector(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => WritingScreen(letter: v),
-                      ),
-                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => WritingScreen(
+                            letter: v,
+                            student: student, // 🔥 se pasa el alumno
+                          ),
+                        ),
+                      );
+                    },
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.lightBlueAccent,

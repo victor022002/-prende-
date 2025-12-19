@@ -1,5 +1,4 @@
 import 'package:sqflite/sqflite.dart';
-
 import '../database/app_database.dart';
 import '../models/progress_model.dart';
 
@@ -29,15 +28,14 @@ class ProgressRepository {
   // READ
   // ======================
 
-  /// Devuelve el progreso de UNA actividad para un alumno
-  /// (o null si nunca la ha iniciado)
+  /// Progreso de UNA actividad
   Future<Progress?> getProgressForActivity({
     required int studentId,
     required int activityId,
   }) async {
     final Database db = await AppDatabase.instance;
 
-    final List<Map<String, dynamic>> rows = await db.query(
+    final rows = await db.query(
       'progress',
       where: 'student_id = ? AND activity_id = ?',
       whereArgs: [studentId, activityId],
@@ -48,14 +46,14 @@ class ProgressRepository {
     return _fromMap(rows.first);
   }
 
-  /// Indica si una actividad está COMPLETADA por el alumno
+  /// ¿Actividad completada?
   Future<bool> isActivityCompleted({
     required int studentId,
     required int activityId,
   }) async {
     final Database db = await AppDatabase.instance;
 
-    final List<Map<String, dynamic>> rows = await db.query(
+    final rows = await db.query(
       'progress',
       columns: ['id'],
       where:
@@ -71,15 +69,14 @@ class ProgressRepository {
     return rows.isNotEmpty;
   }
 
-  /// Devuelve TODOS los activityId completados por el alumno
+  /// Todas las actividades completadas
   Future<List<int>> getCompletedActivityIds(int studentId) async {
     final Database db = await AppDatabase.instance;
 
-    final List<Map<String, dynamic>> rows = await db.query(
+    final rows = await db.query(
       'progress',
       columns: ['activity_id'],
-      where:
-          'student_id = ? AND status = ?',
+      where: 'student_id = ? AND status = ?',
       whereArgs: [
         studentId,
         ProgressStatus.completed.name,
@@ -91,11 +88,11 @@ class ProgressRepository {
         .toList();
   }
 
-  /// Cuenta cuántas actividades ha completado el alumno
+  /// Total completadas
   Future<int> countCompletedActivities(int studentId) async {
     final Database db = await AppDatabase.instance;
 
-    final List<Map<String, dynamic>> result = await db.rawQuery(
+    final result = await db.rawQuery(
       '''
       SELECT COUNT(*) AS total
       FROM progress
@@ -129,4 +126,3 @@ class ProgressRepository {
     );
   }
 }
-

@@ -1,161 +1,25 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
-class ActivitySyllablesScreen extends StatefulWidget {
-  const ActivitySyllablesScreen({super.key});
-
-  @override
-  State<ActivitySyllablesScreen> createState() =>
-      _ActivitySyllablesScreenState();
-}
-
-class _ActivitySyllablesScreenState extends State<ActivitySyllablesScreen> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.blue.shade50,
-      appBar: AppBar(
-        title: const Text("Ordena las sílabas"),
-        backgroundColor: Colors.lightBlueAccent,
-        foregroundColor: Colors.white,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          children: [
-            const Text(
-              "Elige la dificultad",
-              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 30),
-
-            _difficultyButton(
-              title: "Fácil (2 sílabas)",
-              color: Colors.greenAccent,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => SyllablesGameScreen(
-                      words: _easyWords,
-                      hard: false,
-                    ),
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: 20),
-
-            _difficultyButton(
-              title: "Difícil (letra por letra)",
-              color: Colors.orangeAccent,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => SyllablesGameScreen(
-                      words: _hardWords,
-                      hard: true,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _difficultyButton({
-    required String title,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 30),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(22),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 6,
-              offset: Offset(0, 4),
-            )
-          ],
-        ),
-        child: Center(
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-
-final List<Map<String, dynamic>> _easyWords = [
-  {
-    'word': 'CASA',
-    'image': 'assets/imagenes/ordenar_casa.png',
-    'syllables': ['CA', 'SA', 'LA', 'VA'],
-    'correct': ['CA', 'SA'],
-  },
-  {
-    'word': 'MESA',
-    'image': 'assets/imagenes/ordenar_mesa.png',
-    'syllables': ['ME', 'SA', 'SO', 'PA'],
-    'correct': ['ME', 'SA'],
-  },
-  {
-    'word': 'GATO',
-    'image': 'assets/imagenes/ordenar_gato.png',
-    'syllables': ['GA', 'TO', 'PE', 'LA'],
-    'correct': ['GA', 'TO'],
-  },
-];
-
-
-final List<Map<String, dynamic>> _hardWords = [
-  {
-    'word': 'CASA',
-    'image': 'assets/imagenes/ordenar_casa.png',
-    'syllables': ['C', 'A', 'S', 'A'],
-    'correct': ['C', 'A', 'S', 'A'],
-  },
-  {
-    'word': 'MESA',
-    'image': 'assets/imagenes/ordenar_mesa.png',
-    'syllables': ['M', 'E', 'S', 'A'],
-    'correct': ['M', 'E', 'S', 'A'],
-  },
-  {
-    'word': 'GATO',
-    'image': 'assets/imagenes/ordenar_gato.png',
-    'syllables': ['G', 'A', 'T', 'O'],
-    'correct': ['G', 'A', 'T', 'O'],
-  },
-];
-
+import '/models/student_model.dart';
+import '/models/progress_model.dart';
+import '/repositories/progress_repository.dart';
+import '/services/achievement_service.dart';
+import '/widgets/achievement_overlay.dart';
 
 class SyllablesGameScreen extends StatefulWidget {
   final List<Map<String, dynamic>> words;
   final bool hard;
+  final String scenario; // city | nature | objects
+  final Student student;
 
   const SyllablesGameScreen({
     super.key,
     required this.words,
     required this.hard,
+    required this.scenario,
+    required this.student,
   });
 
   @override
@@ -166,34 +30,34 @@ class _SyllablesGameScreenState extends State<SyllablesGameScreen> {
   final FlutterTts _tts = FlutterTts();
 
   int _index = 0;
-  List<String> _selected = [];
+  final List<Map<String, int>> _selected = [];
+
   bool _completed = false;
   bool _errorFlash = false;
+
+  // ======================
+  // 🎯 ACTIVITY ID FIJO
+  // ======================
+  int get activityId {
+    const baseIds = {
+      'city': 100,
+      'nature': 110,
+      'objects': 120,
+    };
+
+    final base = baseIds[widget.scenario]!;
+    return base + (widget.hard ? 1 : 0);
+  }
 
   @override
   void initState() {
     super.initState();
 
-    //  Cuando el TTS termina de hablar
     _tts.setCompletionHandler(() {
-      if (_completed) {
-        // Cierra diálogo si está abierto
-        if (Navigator.canPop(context)) {
-          Navigator.pop(context); 
-        }
-
-        // vuelve a la pantalla anterior (escenarios o dificultad)
+      if (_completed && Navigator.canPop(context)) {
         Navigator.pop(context);
       }
     });
-  }
-
-
-  Future<void> _speak(String text) async {
-    await _tts.setLanguage("es-ES");
-    await _tts.setSpeechRate(0.55);
-    await _tts.setPitch(1.2);
-    await _tts.speak(text);
   }
 
   @override
@@ -202,35 +66,60 @@ class _SyllablesGameScreenState extends State<SyllablesGameScreen> {
     super.dispose();
   }
 
-  void _select(String s) {
-    final correct = List<String>.from(widget.words[_index]['correct']);
+  // ======================
+  // 🔊 TTS
+  // ======================
+  Future<void> _speak(String text) async {
+    await _tts.setLanguage("es-ES");
+    await _tts.setSpeechRate(0.55);
+    await _tts.setPitch(1.2);
+    await _tts.speak(text);
+  }
+
+  // ======================
+  // 🧠 LÓGICA
+  // ======================
+  String _buildSelectedWord(List<String> syllables) {
+    return _selected.map((e) => syllables[e['index']!]).join();
+  }
+
+  void _select(int index) {
+    final activity = widget.words[_index];
+    final correct = List<String>.from(activity['correct']);
 
     if (_selected.length >= correct.length) return;
+    if (_selected.any((e) => e['index'] == index)) return;
 
-    _speak(s); // lee sílaba/letra
+    final syllables = List<String>.from(activity['syllables']);
+    _speak(syllables[index]);
 
-    setState(() => _selected.add(s));
+    setState(() {
+      _selected.add({'index': index});
+    });
 
     if (_selected.length == correct.length) {
-      final word = correct.join();
-
-      Future.delayed(const Duration(milliseconds: 300), () async {
-        await _speak(word);
-        _checkAnswer(correct);
+      Future.delayed(const Duration(milliseconds: 300), () {
+        _checkAnswer(correct, syllables);
       });
     }
   }
 
-  void _removeFromSlot(int i) {
-    if (i < _selected.length) {
-      setState(() => _selected.removeAt(i));
+  void _removeFromSlot(int slotIndex) {
+    if (slotIndex < _selected.length) {
+      setState(() {
+        _selected.removeAt(slotIndex);
+      });
     }
   }
 
-  void _checkAnswer(List<String> correct) async {
-    final word = widget.words[_index]['word'];
+  void _checkAnswer(List<String> correct, List<String> syllables) async {
+    final activity = widget.words[_index];
+    final word = activity['word'];
 
-    if (_selected.join() == correct.join()) {
+    final selectedWord = _buildSelectedWord(syllables);
+    final correctWord = correct.join();
+
+    if (selectedWord == correctWord) {
       await _speak("¡Muy bien! Formaste la palabra $word");
       _showSuccessDialog();
     } else {
@@ -239,6 +128,7 @@ class _SyllablesGameScreenState extends State<SyllablesGameScreen> {
         _selected.clear();
         _errorFlash = true;
       });
+
       Future.delayed(
         const Duration(milliseconds: 300),
         () => setState(() => _errorFlash = false),
@@ -246,13 +136,18 @@ class _SyllablesGameScreenState extends State<SyllablesGameScreen> {
     }
   }
 
+  // ======================
+  // 🟢 DIÁLOGO
+  // ======================
   void _showSuccessDialog() {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text("¡Muy bien! "),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Text("¡Muy bien!"),
         content: const Text("Formaste la palabra correctamente."),
         actions: [
           TextButton(
@@ -272,16 +167,64 @@ class _SyllablesGameScreenState extends State<SyllablesGameScreen> {
       setState(() {
         _index++;
         _selected.clear();
+        _errorFlash = false;
       });
     } else {
-      setState(() => _completed = true);
+      _finishGame();
+    }
+  }
 
-      // El TTS se encarga de cerrar y devolver
-      _speak("¡Felicitaciones! Completaste todas las palabras.");
+  // ======================
+  // 🏁 FINAL
+  // ======================
+  Future<void> _finishGame() async {
+    setState(() => _completed = true);
+
+    final repo = ProgressRepository();
+
+    await repo.saveOrUpdate(
+      Progress(
+        studentId: widget.student.id!,
+        activityId: activityId, // ID fijo correcto
+        status: ProgressStatus.completed,
+        attempts: 1,
+        score: 100,
+      ),
+    );
+
+    // 🗣️ MENSAJE FINAL DEL JUEGO (PRIORIDAD)
+    await _speak(
+      "¡Felicitaciones! Completaste todas las palabras.",
+    );
+
+    // 🏆 LOGROS (SOLO VISUAL)
+    final achievement =
+        await AchievementService.checkNew(widget.student.id!);
+
+    if (achievement != null && mounted) {
+      AchievementOverlay.show(context, achievement);
+
+      // 🗣️ MENSAJE DE LOGRO (DESPUÉS)
+      await _speak(
+        "Has desbloqueado el logro ${achievement.title}",
+      );
     }
   }
 
 
+  // ======================
+  // 🖼️ IMAGEN
+  // ======================
+  Widget _buildImage(String path) {
+    if (path.startsWith('assets/')) {
+      return Image.asset(path, fit: BoxFit.contain);
+    }
+    return Image.file(File(path), fit: BoxFit.contain);
+  }
+
+  // ======================
+  // 🖼️ UI
+  // ======================
   @override
   Widget build(BuildContext context) {
     if (_completed) {
@@ -289,7 +232,7 @@ class _SyllablesGameScreenState extends State<SyllablesGameScreen> {
         backgroundColor: Colors.blue.shade50,
         body: const Center(
           child: Text(
-            "¡Completaste todas las palabras!",
+            "¡Actividad completada!",
             style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
           ),
         ),
@@ -306,163 +249,138 @@ class _SyllablesGameScreenState extends State<SyllablesGameScreen> {
         title: const Text("Ordena las sílabas"),
         backgroundColor: Colors.lightBlueAccent,
       ),
-
-      // EVITA EL OVERFLOW CUANDO SALE EL TECLADO O BOTONES
-      resizeToAvoidBottomInset: true,
-
       body: Padding(
         padding: const EdgeInsets.all(20),
-
-        child: Center(   //  CENTRA TODO EL CONTENIDO
+        child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 500,   // evita que se pegue a la izquierda
-            ),
-
+            constraints: const BoxConstraints(maxWidth: 500),
             child: SingleChildScrollView(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 500),
-
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-
-                      Text(
-                        "Palabra ${_index + 1} de ${widget.words.length}",
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      if (activity['image'] != null)
-                        SizedBox(
-                          height: 150,
-                          child: Image.asset(
-                            activity['image'],
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-
-                      const SizedBox(height: 20),
-
-                      if (!widget.hard)
-                        Text(
-                          activity['word'],
-                          style: const TextStyle(
-                            fontSize: 34,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 4,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-
-                      const SizedBox(height: 25),
-
-                      // CASILLEROS — AHORA CENTRADOS
-                      Wrap(
-                        spacing: 10,
-                        runSpacing: 10,
-                        alignment: WrapAlignment.center,
-                        children: List.generate(correct.length, (i) {
-                          final text = i < _selected.length ? _selected[i] : "";
-
-                          return GestureDetector(
-                            onTap: () => _removeFromSlot(i),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 150),
-                              width: 80,
-                              height: 60,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color:
-                                    _errorFlash ? Colors.red.shade100 : Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.black26, width: 2),
-                              ),
-                              child: Text(
-                                text,
-                                style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          );
-                        }),
-                      ),
-
-                      const SizedBox(height: 30),
-
-                      // BOTONES DE SÍLABAS — CENTRADOS
-                      Wrap(
-                        spacing: 14,
-                        runSpacing: 14,
-                        alignment: WrapAlignment.center,
-                        children: syllables.map((s) {
-                          return GestureDetector(
-                            onTap: () => _select(s),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 26,
-                                vertical: 18,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.lightBlueAccent,
-                                borderRadius: BorderRadius.circular(18),
-                              ),
-                              child: Text(
-                                s,
-                                style: const TextStyle(
-                                  fontSize: 26,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-
-                      const SizedBox(height: 35),
-
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.volume_up, size: 28),
-                        onPressed: () {
-                          if (widget.hard) {
-                            _speak("Forma la palabra");
-                          } else {
-                            _speak("Forma la palabra ${activity['word']}");
-                          }
-                        },
-                        label: const Text(
-                          "Escuchar indicación",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 16,
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 40),
-                    ],
+              child: Column(
+                children: [
+                  Text(
+                    "Palabra ${_index + 1} de ${widget.words.length}",
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
+
+                  const SizedBox(height: 20),
+
+                  if (activity['image'] != null)
+                    SizedBox(
+                      height: 150,
+                      child: _buildImage(activity['image']),
+                    ),
+
+                  const SizedBox(height: 20),
+
+                  Text(
+                    activity['word'],
+                    style: TextStyle(
+                      fontSize: widget.hard ? 22 : 34,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: widget.hard ? 2 : 4,
+                    ),
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  /// 🟦 CASILLEROS
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 10,
+                    children: List.generate(correct.length, (i) {
+                      final text = i < _selected.length
+                          ? syllables[_selected[i]['index']!]
+                          : "";
+
+                      return GestureDetector(
+                        onTap:
+                            text.isNotEmpty ? () => _removeFromSlot(i) : null,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          width: 80,
+                          height: 60,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: _errorFlash
+                                ? Colors.red.shade100
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.black26, width: 2),
+                          ),
+                          child: Text(
+                            text,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  /// 🧩 SÍLABAS
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 14,
+                    runSpacing: 14,
+                    children: List.generate(syllables.length, (i) {
+                      final used =
+                          _selected.any((e) => e['index'] == i);
+
+                      return AnimatedOpacity(
+                        opacity: used ? 0.35 : 1.0,
+                        duration: const Duration(milliseconds: 200),
+                        child: GestureDetector(
+                          onTap: used ? null : () => _select(i),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 26,
+                              vertical: 18,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.lightBlueAccent,
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            child: Text(
+                              syllables[i],
+                              style: const TextStyle(
+                                fontSize: 26,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+
+                  const SizedBox(height: 35),
+
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.volume_up),
+                    onPressed: () {
+                      _speak(
+                        widget.hard
+                            ? "Forma la palabra"
+                            : "Forma la palabra ${activity['word']}",
+                      );
+                    },
+                    label: const Text("Escuchar indicación"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
-
           ),
         ),
       ),

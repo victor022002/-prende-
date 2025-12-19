@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'stories_screen.dart';
 import '/modulos/syllables/syllables_menu_screen.dart';
-import 'activity_complete_word_screen.dart';
+import 'activity_complete_word_sentence.dart';
 import '/models/student_model.dart';
 
 class ReadingMenuScreen extends StatelessWidget {
@@ -28,7 +28,7 @@ class ReadingMenuScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
-                "Elige una actividad 👇",
+                "Elige una actividad",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 22,
@@ -66,24 +66,29 @@ class ReadingMenuScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const SyllablesMenuScreen(),
+                      builder: (_) => SyllablesMenuScreen(
+                        student: student, 
+                      ),
                     ),
                   );
                 },
               ),
+
 
               const SizedBox(height: 20),
 
               // 🔠 Completa la palabra
               _buildItem(
                 context,
-                title: "🔠 Completa la palabra",
+                title: "🔠 Completa la oración",
                 color: Colors.green,
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const ActivityCompleteWordScreen(),
+                      builder: (_) => ActivityFillSentenceScreen(
+                        student: student,
+                      ),
                     ),
                   );
                 },

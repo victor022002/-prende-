@@ -1,11 +1,13 @@
+import 'package:aprende_app/modulos/listening/listening_game_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:aprende_app/modulos/reading/reading_menu_screen.dart';
-
 import '/modulos/activity/activity_menu_screen.dart';
 import '/modulos/writing/writing_menu_screen.dart';
 import '/modulos/settings/settings_screen.dart';
 import '/modulos/students/progress_screen.dart';
 import '/models/student_model.dart';
+import '/modulos/listening/listening_list.dart';
+
 
 class HomeScreen extends StatefulWidget {
   final Student student;
@@ -52,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen>
     _screens = [
       WelcomeScreen(student: currentStudent),
       ActivityMenuScreen(student: currentStudent),
-      ProgressScreen(studentId: currentStudent.id!), // 🔑 REAL
+      ProgressScreen(studentId: currentStudent.id!), 
       const SettingsScreen(),
     ];
   }
@@ -222,9 +224,11 @@ class WelcomeScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const WritingMenuScreen(),
+                          builder: (_) => WritingMenuScreen(
+                            student: student,
+                          ),
                         ),
-                      );
+                  );
                     },
                   ),
 
@@ -235,13 +239,16 @@ class WelcomeScreen extends StatelessWidget {
                     icon: Icons.hearing,
                     color: Colors.purpleAccent,
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Próximamente 👂🎧"),
-                          duration: Duration(seconds: 2),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ListeningGameScreen(
+                            student: student,
+                            activities: listeningList,
+                          ),
                         ),
                       );
-                    },
+                    }
                   ),
 
                   _buildCard(

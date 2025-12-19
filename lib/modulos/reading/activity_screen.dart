@@ -4,6 +4,8 @@ import '/repositories/progress_repository.dart';
 import '/models/progress_model.dart';
 import '/models/student_model.dart';
 import '/models/activity_model.dart';
+import '/services/achievement_service.dart'; 
+import '/widgets/achievement_overlay.dart';
 
 class QuizQuestion {
   final String question;
@@ -724,6 +726,7 @@ void _loadPrincipeRana() {
       print("💾 Guardando progreso:"
       " studentId=${widget.student!.id},"
       " activityId=${widget.activity.id}");
+      
       await progressRepo.saveOrUpdate(
         Progress(
           studentId: widget.student!.id!,

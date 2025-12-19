@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'syllables_game_screen.dart';
 import 'word_lists.dart';
+import '/models/student_model.dart';
 
 class SyllablesDifficultyScreen extends StatelessWidget {
   final String scenario;
+  final Student student;
 
   const SyllablesDifficultyScreen({
     super.key,
     required this.scenario,
+    required this.student,
   });
 
   @override
@@ -25,7 +28,10 @@ class SyllablesDifficultyScreen extends StatelessWidget {
           children: [
             const Text(
               "Selecciona dificultad",
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 40),
 
@@ -35,6 +41,7 @@ class SyllablesDifficultyScreen extends StatelessWidget {
               color: Colors.greenAccent,
               hard: false,
             ),
+
             const SizedBox(height: 20),
 
             _buildButton(
@@ -57,6 +64,7 @@ class SyllablesDifficultyScreen extends StatelessWidget {
   }) {
     return GestureDetector(
       onTap: () {
+        /// 🔹 SOLO LEE LA LISTA EN MEMORIA
         final words = getWordList(scenario, hard);
 
         Navigator.push(
@@ -65,6 +73,8 @@ class SyllablesDifficultyScreen extends StatelessWidget {
             builder: (_) => SyllablesGameScreen(
               words: words,
               hard: hard,
+              scenario: scenario,
+              student: student,
             ),
           ),
         );
@@ -79,7 +89,10 @@ class SyllablesDifficultyScreen extends StatelessWidget {
         child: Center(
           child: Text(
             title,
-            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),

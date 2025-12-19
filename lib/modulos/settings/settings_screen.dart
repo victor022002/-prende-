@@ -1,11 +1,9 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-
 import '/services/database_service.dart';
 import '/modulos/auth/login_screen.dart';
 import '/modulos/auth/change_password_screen.dart';
@@ -22,7 +20,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final ImagePicker _picker = ImagePicker();
 
   User? _user;
-  String? _fotoUrl; // ruta local o URL
+  String? _fotoUrl; 
   bool _busy = false;
 
   @override
@@ -173,7 +171,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 ),
               const SizedBox(height: 24),
 
-              // Tarjeta de perfil
+              
               Card(
                 elevation: 4,
                 shape: RoundedRectangleBorder(
@@ -246,7 +244,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
               const SizedBox(height: 24),
 
-              // Sección Seguridad
+              
               Text(
                 "Seguridad",
                 style: TextStyle(

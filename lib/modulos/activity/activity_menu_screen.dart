@@ -1,7 +1,11 @@
+import 'package:aprende_app/modulos/listening/listening_game_screen.dart';
+import 'package:aprende_app/modulos/listening/listening_list.dart';
 import 'package:flutter/material.dart';
+import '/models/student_model.dart';
 import '/modulos/reading/reading_menu_screen.dart';
 import '/modulos/writing/writing_menu_screen.dart';
-import '/models/student_model.dart';
+import '/modulos/listening/listening_game_screen.dart';
+
 
 class ActivityMenuScreen extends StatelessWidget {
   final Student student;
@@ -17,14 +21,13 @@ class ActivityMenuScreen extends StatelessWidget {
       backgroundColor: Colors.blue.shade50,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-
               const SizedBox(height: 10),
 
-              // 📚 Lectura
+              /// 📚 LECTURA
               _buildCategoryCard(
                 context,
                 title: "📚 Lectura",
@@ -36,7 +39,7 @@ class ActivityMenuScreen extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (_) => ReadingMenuScreen(
-                        student: student, // ✅ MISMO alumno
+                        student: student,
                       ),
                     ),
                   );
@@ -45,22 +48,45 @@ class ActivityMenuScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // ✍️ Escritura
+              /// ✍️ ESCRITURA
               _buildCategoryCard(
                 context,
                 title: "✍️ Escritura",
                 description:
-                    "Actividades para desarrollar habilidades de escritura 😎",
+                    "Actividades para desarrollar habilidades de escritura",
                 color: Colors.purpleAccent,
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const WritingMenuScreen(),
+                      builder: (_) => WritingMenuScreen(
+                        student: student,
+                      ),
                     ),
                   );
                 },
               ),
+
+              const SizedBox(height: 20),
+              /// 👂 ESCRITURA
+              _buildCategoryCard(
+                context,
+                title: "👂 Escucha",
+                description: "Actividades para desarrollar habilidades de escucha",
+                color: Colors.purpleAccent,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ListeningGameScreen(
+                        student: student,
+                        activities: listeningList, 
+                      ),
+                    ),
+                  );
+                },
+              ),
+
             ],
           ),
         ),
@@ -79,12 +105,12 @@ class ActivityMenuScreen extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(18),
       child: Container(
         padding: EdgeInsets.all(width * 0.05),
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           boxShadow: const [
             BoxShadow(
               color: Colors.black12,

@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'syllables_difficulty_screen.dart';
+import '/models/student_model.dart';
 
 class SyllablesMenuScreen extends StatelessWidget {
-  const SyllablesMenuScreen({super.key});
+  final Student student;
+
+  const SyllablesMenuScreen({
+    super.key,
+    required this.student,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -13,8 +19,7 @@ class SyllablesMenuScreen extends StatelessWidget {
         backgroundColor: Colors.lightBlueAccent,
         foregroundColor: Colors.white,
       ),
-
-      body: SingleChildScrollView(     // PREVIENE EL OVERFLOW
+      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -52,8 +57,6 @@ class SyllablesMenuScreen extends StatelessWidget {
                 color: Colors.lightBlueAccent,
                 scenario: "objects",
               ),
-
-              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -73,7 +76,10 @@ class SyllablesMenuScreen extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => SyllablesDifficultyScreen(scenario: scenario),
+            builder: (_) => SyllablesDifficultyScreen(
+              scenario: scenario,
+              student: student,
+            ),
           ),
         );
       },
