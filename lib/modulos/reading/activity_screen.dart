@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+
 import '/repositories/progress_repository.dart';
 import '/models/progress_model.dart';
 import '/models/student_model.dart';
 import '/models/activity_model.dart';
-import '/services/achievement_service.dart'; 
-import '/widgets/achievement_overlay.dart';
 
 class QuizQuestion {
   final String question;
@@ -29,7 +29,7 @@ class ActivityScreen extends StatefulWidget {
   const ActivityScreen({
     super.key,
     required this.storyId,
-    required this.activity, 
+    required this.activity,
     this.student,
   });
 
@@ -37,93 +37,120 @@ class ActivityScreen extends StatefulWidget {
   State<ActivityScreen> createState() => _ActivityScreenState();
 }
 
-
 class _ActivityScreenState extends State<ActivityScreen> {
+  
   final AudioPlayer _storyPlayer = AudioPlayer();
   final AudioPlayer _quizPlayer = AudioPlayer();
+  final FlutterTts _tts = FlutterTts();
   final PageController _pageController = PageController();
 
-  static const Duration _coverLock = Duration(seconds: 6);
-
-  late String _audioAssetPath;
+  // =================== STORY DATA ===================
   late String _storyTitle;
   late String _storyAuthor;
   late String _storyVersion;
+  late String _coverAudio;
 
   late List<List<String>> _pages;
-  late List<List<List<String>>> _pageWords;
-  late List<List<List<int>>> _timeRanges;
+  late List<String> _pageAudios;
+
+  late List<List<List<String>>> _pageWords; // page -> paragraph -> words
 
   late List<QuizQuestion> _quizzes;
   late List<int?> _userAnswers;
   late List<bool> _quizShown;
 
+  // =================== STATE ===================
   int _currentPage = 0;
   int _currentParagraph = -1;
   int _currentWord = -1;
 
   bool _isPlayingStory = false;
-  Duration _position = Duration.zero;
-
   bool _inQuiz = false;
   int _currentQuizIndex = -1;
-  Duration _resumePositionAfterQuiz = Duration.zero;
 
-  int get _totalStoryPages => _pages.length - 1; // sin contar portada
+  int get _visiblePage {
+  if (_pageController.hasClients && _pageController.page != null) {
+    return _pageController.page!.round();
+  }
+  return _currentPage;
+}
 
+
+  // evitar doble click en quiz (y dialogs en cadena)
+  bool _quizLock = false;
+
+  // =================== LIFECYCLE ===================
   @override
   void initState() {
     super.initState();
     _loadStory(widget.storyId);
-    _initAudioListeners();
+
+    _pageWords = _pages
+        .map((page) => page
+            .map((p) => p
+                .trim()
+                .split(RegExp(r'\s+'))
+                .where((w) => w.isNotEmpty)
+                .toList())
+            .toList())
+        .toList();
+
+    _userAnswers = List<int?>.filled(_quizzes.length, null);
+    _quizShown = List<bool>.filled(_quizzes.length, false);
+
+    _initTts();
+  }
+
+  void _initTts() async {
+    await _tts.setLanguage('es-ES');
+    await _tts.setSpeechRate(0.45);
+    await _tts.setPitch(1.0);
   }
 
   @override
   void dispose() {
     _storyPlayer.dispose();
     _quizPlayer.dispose();
+    _tts.stop();
     _pageController.dispose();
     super.dispose();
   }
 
-  // ======================= 1. CARGAR CUENTO SEGÚN storyId ===================
+  // =================== LOAD STORY ===================
   void _loadStory(int id) {
-    if (id == 1) {
-      _loadTioTigre();
-    } else if (id == 2) {
-      _loadRatita();
-    } else if (id == 3) {
-      _loadPrincipeRana();
-    } else {
-      _loadTioTigre();
+    switch (id) {
+      case 1:
+        _loadTioTigre();
+        break;
+      case 2:
+        _loadRatita();
+        break;
+      case 3:
+        _loadPrincipeRana();
+        break;
+      default:
+        _loadTioTigre();
     }
-
-    _pageWords = _pages
-        .map((page) => page.map((p) => p.split(" ")).toList())
-        .toList();
-
-    _userAnswers = List<int?>.filled(_quizzes.length, null);
-    _quizShown = List<bool>.filled(_quizzes.length, false);
   }
 
-  // ---------------- CUENTO 1: TÍO TIGRE Y TÍO CONEJO ----------------
+  // =================== STORY 1 ===================
   void _loadTioTigre() {
     _storyTitle = "TÍO TIGRE Y TÍO CONEJO";
-    _audioAssetPath = 'audio/Tio_tigre_tio_conejo.mp3';
     _storyAuthor = "Cuento tradicional de Venezuela";
     _storyVersion = "Versión de Paola Artmann";
+    _coverAudio = 'audio/Tio_tigre_titulo.mp3';
 
     _pages = [
       [],
       [
         "Una calurosa mañana, se encontraba Tío Conejo recolectando zanahorias para el almuerzo.",
         "De repente, escuchó un rugido aterrador: ¡era Tío Tigre!",
-        "—¡Ajá, Tío Conejo! —dijo el felino—.",
+        "¡Ajá, Tío Conejo! dijo el felino.",
         "No tienes escapatoria, pronto te convertirás en un delicioso bocadillo.",
       ],
       [
         "En ese instante, Tío Conejo notó unas piedras muy grandes en lo alto de la colina e ideó un plan.",
-        "—Puede que yo sea un delicioso bocadillo, pero estoy muy flaquito —dijo Tío Conejo—.",
+        "Puede que yo sea un delicioso bocadillo, pero estoy muy flaquito dijo Tío Conejo.",
         "Mira hacia la cima de la colina, ahí tengo mis vacas y te puedo traer una.",
         "¿Por qué conformarte con un pequeño bocadillo, cuando puedes darte un gran banquete?",
       ],
@@ -131,7 +158,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
         "Como Tío Tigre se encontraba de cara al sol, no podía ver con claridad y aceptó la propuesta.",
         "Entonces le permitió a Tío Conejo ir colina arriba mientras él esperaba abajo.",
         "Al llegar a la cima de la colina, Tío Conejo gritó:",
-        "—Abre bien los brazos Tío Tigre, estoy arreando la vaca más gordita.",
+        "Abre bien los brazos Tío Tigre, estoy arreando la vaca más gordita.",
       ],
       [
         "Entonces, Tío Conejo se acercó a la piedra más grande y la empujó con todas sus fuerzas.",
@@ -141,34 +168,12 @@ class _ActivityScreenState extends State<ActivityScreen> {
       ],
     ];
 
-    _timeRanges = [
-      [
-        [0, 6200],
-      ],
-      [
-        [6200, 11900],
-        [11900, 16900],
-        [16900, 20700],
-        [20700, 27900],
-      ],
-      [
-        [27900, 33500],
-        [33500, 39200],
-        [39200, 43300],
-        [43300, 50900],
-      ],
-      [
-        [50900, 56000],
-        [56000, 60900],
-        [60900, 65200],
-        [65200, 69200],
-      ],
-      [
-        [69200, 73900],
-        [73900, 75900],
-        [75900, 83300],
-        [83300, 87000],
-      ],
+    _pageAudios = [
+      '',
+      'audio/tio_tigre_p1.mp3',
+      'audio/tio_tigre_p2.mp3',
+      'audio/tio_tigre_p3.mp3',
+      'audio/tio_tigre_p4.mp3',
     ];
 
     _quizzes = [
@@ -203,562 +208,335 @@ class _ActivityScreenState extends State<ActivityScreen> {
     ];
   }
 
-
-  // ---------------- CUENTO 2: RATITA PRESUMIDA ----------------
+  // =================== STORY 2 ===================
   void _loadRatita() {
     _storyTitle = "LA RATITA PRESUMIDA";
-    _audioAssetPath = 'audio/Ratita_presumida.mp3';
-    _storyAuthor = "Cuento folclorico español";
+    _storyAuthor = "Cuento folclórico español";
     _storyVersion = "Versión de Paola Artmann";
+    _coverAudio = 'audio/ratita_cover.mp3';
 
     _pages = [
       [],
-      [
-        "Érase una vez una ratita que era muy presumida. "
-            "Un día estaba barriendo su casita, cuando de repente encontró en el suelo algo que brillaba: era una moneda de oro. "
-            "La ratita la recogió del suelo y dichosa se puso a pensar qué se compraría con la moneda. "
-            "“Ya sé, me compraré caramelos. ¡Oh no!, se me caerán los dientes. "
-            "Pues me compraré pasteles. ¡Oh no! me dolerá la barriguita. "
-            "Ya sé, me compraré un lacito de color rojo para mi rabito.”",
-      ],
-      [
-        "La ratita guardó la moneda en su bolsillo y se fue al mercado. "
-            "Una vez en el mercado le pidió al tendero un trozo de su mejor cinta roja. "
-            "La compró y volvió a su casita. "
-            "Al día siguiente, la ratita se puso el lacito en la colita y salió al balcón de su casa para que todos pudieran admirarla. "
-            "En eso que aparece un gallo y le dice: "
-            "— Ratita, ratita tú que eres tan bonita, ¿te quieres casar conmigo?",
-      ],
-      [
-        "Y la ratita le dijo: "
-            "—No sé, no sé, ¿tú por las noches qué ruido haces? "
-            "—Yo cacareo así: quiquiriquí —respondió el gallo. "
-            "—¡Ay, no!, contigo no me casaré, me asusto, me asusto —replicó la ratita con un tono muy indiferente.",
-      ],
-      [
-        "Se fue el gallo y apareció el perro: "
-            "— Ratita, ratita tú que eres tan bonita, ¿te quieres casar conmigo? "
-            "Y la ratita le dijo: "
-            "—No sé, no sé, ¿tú por las noches qué ruido haces?",
-      ],
-      [
-        "—Yo ladro así: guau, guau — respondió el perro. "
-            "—¡Ay, no!, contigo no me casaré, me asusto, me asusto —replicó la ratita sin ni siquiera mirarlo. "
-            "Se fue el perro y apareció el cerdo. "
-            "— Ratita, ratita tú que eres tan bonita, ¿te quieres casar conmigo?",
-      ],
-      [
-        "Y la ratita le dijo: "
-            "—No sé, no sé, ¿tú por las noches qué ruido haces? "
-            "—Yo gruño así: oinc, oinc— respondió el cerdo. "
-            "—¡Ay, no!, contigo no me casaré, me asusto, me asusto —replicó la ratita con mucho desagrado.",
-      ],
-      [
-        "El cerdo desaparece por donde vino, llega un gato blanco y le dice a la ratita: "
-            "— Ratita, ratita tú que eres tan bonita, ¿te quieres casar conmigo? "
-            "Y la ratita le dijo: "
-            "—No sé, no sé, ¿tú por las noches qué ruido haces?",
-      ],
-      [
-        "—Yo maúllo así: miau, miau— respondió el gato con un maullido muy dulce. "
-            "—¡Ay, sí!, contigo me casaré, tienes un maullido muy dulce. "
-            "La ratita muy emocionada, se acercó al gato para darle un abrazo y él sin perder la oportunidad de hacerse a buen bocado, "
-            "se abalanzó sobre ella y casi la atrapa de un solo zarpazo.",
-      ],
-      [
-        "La ratita pegó un brinco y corrió lo más rápido que pudo. "
-            "De no ser porque la ratita no solo era presumida sino también muy suertuda, esta hubiera sido una muy triste historia. "
-            "Y colorín colorado, este cuento se ha acabado.",
-      ],
+      ["Érase una vez una ratita muy presumida que encontró una moneda de oro."],
+      ["Fue al mercado y compró un lacito rojo."],
+      ["El gallo quiso casarse con ella, pero la asustó."],
+      ["Luego apareció el perro."],
+      ["Después llegó el cerdo."],
+      ["Más tarde apareció un gato blanco."],
+      ["El gato intentó atraparla."],
+      ["La ratita escapó y el cuento terminó felizmente."],
     ];
 
-    // tiempos genéricos (ajusta luego al audio real)
-    // Tiempos reales por página (en ms) usando el audio de 3:11
-    _timeRanges = [
-      // Portada (solo bloqueo de 6s)
-      [
-        [0, 6000],
-      ],
-
-      // Página 1
-      [
-        [6000, 26587],
-      ],
-
-      // Página 2
-      [
-        [26587, 47175],
-      ],
-
-      // Página 3
-      [
-        [47175, 67762],
-      ],
-
-      // Página 4
-      [
-        [67762, 88349],
-      ],
-
-      // Página 5
-      [
-        [88349, 108937],
-      ],
-
-      // Página 6
-      [
-        [108937, 129524],
-      ],
-
-      // Página 7
-      [
-        [129524, 150111],
-      ],
-
-      // Página 8
-      [
-        [150111, 170699],
-      ],
-
-      // Página 9
-      [
-        [170699, 191286],
-      ],
+    _pageAudios = [
+      '',
+      'audio/ratita_p1.mp3',
+      'audio/ratita_p2.mp3',
+      'audio/ratita_p3.mp3',
+      'audio/ratita_p4.mp3',
+      'audio/ratita_p5.mp3',
+      'audio/ratita_p6.mp3',
+      'audio/ratita_p7.mp3',
+      'audio/ratita_p8.mp3',
     ];
-
 
     _quizzes = [
       QuizQuestion(
-        question: "¿Qué encontró la ratita en el suelo?",
-        options: ["Una moneda de oro", "Un caramelo", "Un zapato"],
+        question: "¿Qué encontró la ratita?",
+        options: ["Una moneda", "Un zapato", "Un caramelo"],
         correctIndex: 0,
         audioPath: "audio/quiz_ratita_p1.mp3",
       ),
-      QuizQuestion(
-        question: "¿Qué se compró la ratita con la moneda?",
-        options: ["Caramelos", "Pasteles", "Un lacito rojo"],
-        correctIndex: 2,
-        audioPath: "audio/quiz_ratita_p2.mp3",
-      ),
-      QuizQuestion(
-        question: "¿Quién fue el primer animal en pedirle matrimonio?",
-        options: ["Perro", "Gallo", "Cerdo"],
-        correctIndex: 1,
-        audioPath: "audio/quiz_ratita_p3.mp3",
-      ),
-      QuizQuestion(
-        question: "¿Qué ruido hacía el perro?",
-        options: ["Miau, miau", "Guau, guau", "Oinc, oinc"],
-        correctIndex: 1,
-        audioPath: "audio/quiz_ratita_p4.mp3",
-      ),
-      QuizQuestion(
-        question: "¿Qué animal hacía oinc, oinc?",
-        options: ["El cerdo", "El gato", "El perro"],
-        correctIndex: 0,
-        audioPath: "audio/quiz_ratita_p5.mp3",
-      ),
-      QuizQuestion(
-        question: "¿De qué color era el gato que llegó al final?",
-        options: ["Negro", "Blanco", "Gris"],
-        correctIndex: 1,
-        audioPath: "audio/quiz_ratita_p6.mp3",
-      ),
-      QuizQuestion(
-        question: "¿Por qué la ratita decidió casarse con el gato?",
-        options: [
-          "Porque era blanco",
-          "Porque tenía mucho dinero",
-          "Porque su maullido era muy dulce"
-        ],
-        correctIndex: 2,
-        audioPath: "audio/quiz_ratita_p7.mp3",
-      ),
-      QuizQuestion(
-        question: "¿Qué intentó hacer el gato con la ratita?",
-        options: ["Abrazarla", "Comérsela", "Llevarla a pasear"],
-        correctIndex: 1,
-        audioPath: "audio/quiz_ratita_p8.mp3",
-      ),
-      QuizQuestion(
-        question: "¿Qué ayudó a que la historia no fuera triste?",
-        options: [
-          "Que la ratita era muy suertuda",
-          "Que el gato se durmió",
-          "Que llegó el perro"
-        ],
-        correctIndex: 0,
-        audioPath: "audio/quiz_ratita_p9.mp3",
-      ),
     ];
   }
 
-  // ---------------- CUENTO 3: PRÍNCIPE RANA ----------------
-void _loadPrincipeRana() {
+  // =================== STORY 3 ===================
+  void _loadPrincipeRana() {
     _storyTitle = "EL PRÍNCIPE RANA";
-    _audioAssetPath = 'audio/Príncipe_rana.mp3';
-    _storyAuthor = "Cuento de los Hermanos Grimm";
+    _storyAuthor = "Hermanos Grimm";
     _storyVersion = "Versión de Paola Artmann";
-
-  // (y todo tu cuento queda igual… no se toca nada más)
-
+    _coverAudio = 'audio/rana_cover.mp3';
 
     _pages = [
       [],
-      [
-        "En una tierra muy lejana, una princesa disfrutaba de la brisa fresca de la tarde afuera del palacio de su familia. "
-            "Ella llevaba consigo una pequeña bola dorada que era su posesión más preciada. "
-            "Mientras jugaba, la arrojó tan alto que perdió vista de ella y la bola rodó hacia un estanque. "
-            "La princesa comenzó a llorar desconsoladamente. Entonces, una pequeña rana salió del estanque saltando.",
-      ],
-      [
-        "—¿Qué pasa bella princesa? —preguntó la rana. "
-            "La princesa se enjugó las lágrimas y dijo: "
-            "—Mi bola dorada favorita está perdida en el fondo del estanque, y nada me la devolverá. "
-            "La rana intentó consolar a la princesa, y le aseguró que podía recuperar la bola dorada si ella le concedía un solo favor.",
-      ],
-      [
-        "—¡Cualquier cosa! ¡Te daré todas mis joyas, puñados de oro y hasta mis vestidos! —exclamó la princesa. "
-            "La rana le explicó que no tenía necesidad de riquezas, y que a cambio solo pedía que la princesa le permitiera comer de su plato y dormir en su habitación. "
-            "La idea de compartir el plato y habitación con una rana desagradó muchísimo a la princesa, pero aceptó pensando que la rana jamás encontraría el camino al palacio. "
-            "La rana se sumergió en el estanque y en un abrir y cerrar de ojos había recuperado la bola.",
-      ],
-      [
-        "A la mañana siguiente, la princesa encontró a la rana esperándola en la puerta del palacio. "
-            "—He venido a reclamar lo prometido —dijo la rana. "
-            "Al escuchar esto, la princesa corrió hacia su padre, llorando. Cuando el amable rey se enteró de la promesa, dijo: "
-            "—Una promesa es una promesa. Ahora, debes dejar que la rana se quede aquí.",
-      ],
-      [
-        "La princesa estaba muy enojada, pero no tuvo otra opción que dejar quedar a la rana. "
-            "Fue así como la rana comió de su plato y durmió en su almohada. "
-            "Al final de la tercera noche, la princesa cansada de la presencia del huésped indeseable, se levantó de la cama y tiró la rana al piso. "
-            "Entonces la rana le propuso un trato:",
-      ],
-      [
-        "—Si me das un beso, desapareceré para siempre —dijo la rana. "
-            "La princesa muy asqueada plantó un beso en la frente huesuda de la rana y exclamó: "
-            "—He cumplido con mi parte, ahora márchate inmediatamente. "
-            "De repente, una nube de humo blanco inundó la habitación.",
-      ],
-      [
-        "Para sorpresa de la princesa, la rana era realmente un apuesto príncipe atrapado por la maldición de una bruja malvada. "
-            "Su beso lo había liberado de una vida de soledad y tristeza. "
-            "La princesa y el príncipe se hicieron amigos al instante, después de unos años se casaron y vivieron felices para siempre.",
-      ],
+      ["Una princesa perdió su bola dorada en un estanque."],
+      ["Una rana prometió ayudarla."],
+      ["La rana pidió un favor."],
+      ["El rey obligó a cumplir la promesa."],
+      ["La princesa tiró la rana."],
+      ["La rana pidió un beso."],
+      ["La rana se convirtió en príncipe."],
     ];
 
-    _timeRanges = [
-      // Portada
-      [
-        [0, 6000],
-      ],
-
-      // Página 1
-      [
-        [6000, 30748],
-      ],
-
-      // Página 2
-      [
-        [27748, 51495],
-      ],
-
-      // Página 3
-      [
-        [51495, 85000],
-      ],
-
-      // Página 4
-      [
-        [74243, 96990],
-      ],
-
-      // Página 5
-      [
-        [96990, 119738],
-      ],
-
-      // Página 6
-      [
-        [119738, 142485],
-      ],
-
-      // Página 7
-      [
-        [142485, 165233],
-      ],
+    _pageAudios = [
+      '',
+      'audio/rana_p1.mp3',
+      'audio/rana_p2.mp3',
+      'audio/rana_p3.mp3',
+      'audio/rana_p4.mp3',
+      'audio/rana_p5.mp3',
+      'audio/rana_p6.mp3',
+      'audio/rana_p7.mp3',
     ];
-
 
     _quizzes = [
       QuizQuestion(
-        question: "¿Qué objeto preciado tenía la princesa?",
-        options: ["Un collar", "Una bola dorada", "Una corona"],
+        question: "¿Qué perdió la princesa?",
+        options: ["Una corona", "Una bola dorada", "Un anillo"],
         correctIndex: 1,
         audioPath: "audio/quiz_rana_p1.mp3",
-      ),
-      QuizQuestion(
-        question: "¿Dónde cayó la bola dorada de la princesa?",
-        options: ["En un río", "En un pozo", "En un estanque"],
-        correctIndex: 2,
-        audioPath: "audio/quiz_rana_p2.mp3",
-      ),
-      QuizQuestion(
-        question: "¿Qué quería la rana a cambio?",
-        options: [
-          "Joyas y oro",
-          "Comer de su plato y dormir en su habitación",
-          "Un castillo"
-        ],
-        correctIndex: 1,
-        audioPath: "audio/quiz_rana_p3.mp3",
-      ),
-      QuizQuestion(
-        question: "¿Qué dijo el rey al saber de la promesa?",
-        options: [
-          "Que la rompiera",
-          "Que una promesa es una promesa",
-          "Que se fuera del palacio"
-        ],
-        correctIndex: 1,
-        audioPath: "audio/quiz_rana_p4.mp3",
-      ),
-      QuizQuestion(
-        question: "¿Qué hizo la princesa la tercera noche?",
-        options: [
-          "Le cantó a la rana",
-          "Tiró la rana al piso",
-          "Se fue del palacio"
-        ],
-        correctIndex: 1,
-        audioPath: "audio/quiz_rana_p5.mp3",
-      ),
-      QuizQuestion(
-        question: "¿Qué debía hacer la princesa para que la rana desapareciera?",
-        options: [
-          "Darle comida",
-          "Regalarle joyas",
-          "Darle un beso"
-        ],
-        correctIndex: 2,
-        audioPath: "audio/quiz_rana_p6.mp3",
-      ),
-      QuizQuestion(
-        question: "¿Quién era en realidad la rana?",
-        options: [
-          "Un mago",
-          "Un príncipe",
-          "Un rey"
-        ],
-        correctIndex: 1,
-        audioPath: "audio/quiz_rana_p7.mp3",
       ),
     ];
   }
 
-  // ======================= 2. AUDIO LISTENERS ================================
-  void _initAudioListeners() {
-    _storyPlayer.onPositionChanged.listen((p) {
-      if (_inQuiz) return;
-      setState(() => _position = p);
-      _syncAudioToText();
+  // =================== PLAY LOGIC ===================
+  Future<void> _playCurrentPage() async {
+    if (_currentPage == 0) return;
+
+    final audio = _pageAudios[_currentPage];
+    final wordsByParagraph = _pageWords[_currentPage];
+
+    // total words
+    int totalWords = 0;
+    for (final p in wordsByParagraph) {
+      totalWords += p.length;
+    }
+    if (totalWords == 0) return;
+
+    await _storyPlayer.stop();
+    await _storyPlayer.play(AssetSource(audio));
+
+    setState(() {
+      _isPlayingStory = true;
+      _currentParagraph = 0;
+      _currentWord = -1;
     });
 
-    _storyPlayer.onPlayerComplete.listen((_) {
-      if (!_quizShown[_quizzes.length - 1]) {
-        _goToQuizForPage(_totalStoryPages);
+    final duration = await _storyPlayer.getDuration();
+    if (duration == null) return;
+
+    final wordMs = (duration.inMilliseconds ~/ totalWords).clamp(60, 700);
+
+    int pIndex = 0;
+    int wIndex = 0;
+
+    while (_isPlayingStory && pIndex < wordsByParagraph.length) {
+      // si el párrafo está vacío
+      if (wordsByParagraph[pIndex].isEmpty) {
+        pIndex++;
+        wIndex = 0;
+        continue;
       }
-    });
+
+      setState(() {
+        _currentParagraph = pIndex;
+        _currentWord = wIndex;
+      });
+
+      await Future.delayed(Duration(milliseconds: wordMs));
+
+      wIndex++;
+      if (wIndex >= wordsByParagraph[pIndex].length) {
+        wIndex = 0;
+        pIndex++;
+      }
+    }
+
+    // al terminar: quiz de la página (si corresponde)
+    final quizIndex = _currentPage - 1;
+    if (quizIndex >= 0 &&
+        quizIndex < _quizzes.length &&
+        !_quizShown[quizIndex]) {
+      _goToQuizForPage(_currentPage);
+    }
   }
 
-  // ======================= 3. SYNC AUDIO → TEXTO =============================
-  void _syncAudioToText() {
+  Future<void> _togglePlayPause() async {
     if (_inQuiz) return;
-    final currentMs = _position.inMilliseconds;
 
-    if (currentMs < _coverLock.inMilliseconds) {
-      if (_currentPage != 0) {
-        _currentPage = 0;
-        _currentParagraph = -1;
+    final pageNow = _visiblePage;
+
+    // PORTADA (según lo que se ve realmente)
+    if (pageNow == 0 && !_isPlayingStory) {
+      setState(() => _isPlayingStory = true);
+
+      await _storyPlayer.stop();
+      await _storyPlayer.play(AssetSource(_coverAudio));
+      await _storyPlayer.onPlayerComplete.first;
+
+      if (!mounted) return;
+
+      // después del audio de portada pasamos a la página 1 y leemos
+      _pageController.jumpToPage(1);
+      setState(() {
+        _currentPage = 1;
+        _isPlayingStory = false;
+        _currentParagraph = 0;
         _currentWord = -1;
-        _pageController.jumpToPage(0);
-        setState(() {});
-      }
+      });
+
+      await _playCurrentPage();
       return;
     }
 
-    int? page;
-    int? paragraph;
-    int? word;
-
-    for (int pg = 1; pg < _timeRanges.length; pg++) {
-      for (int pa = 0; pa < _timeRanges[pg].length; pa++) {
-        final start = _timeRanges[pg][pa][0];
-        final end = _timeRanges[pg][pa][1];
-
-        if (currentMs >= start && currentMs < end) {
-          page = pg;
-          paragraph = pa;
-
-          const delay = 120;
-          final words = _pageWords[pg][pa];
-          final totalWords = words.length;
-          final range = (end - start).clamp(1, 999999);
-          final local =
-              (currentMs - start - delay).clamp(0, range - 1);
-          final wordDuration = range / totalWords;
-
-          word = (local / wordDuration)
-              .floor()
-              .clamp(0, totalWords - 1);
-          break;
-        }
-      }
-      if (page != null) break;
+    // si NO estamos en portada, aseguro que el estado siga a lo visible
+    if (_currentPage != pageNow) {
+      setState(() {
+        _currentPage = pageNow;
+        _currentParagraph = -1;
+        _currentWord = -1;
+      });
     }
-
-    if (page == null) return;
-
-    final prevPage = _currentPage;
-
-    _currentPage = page;
-    _currentParagraph = paragraph!;
-    _currentWord = word!;
-    _pageController.jumpToPage(page);
-    setState(() {});
-
-    if (prevPage >= 1 &&
-        prevPage < _totalStoryPages &&
-        page == prevPage + 1) {
-      final quizIndex = prevPage - 1;
-      if (quizIndex >= 0 &&
-          quizIndex < _quizzes.length &&
-          !_quizShown[quizIndex]) {
-        _resumePositionAfterQuiz = _position;
-        _goToQuizForPage(prevPage);
-      }
-    }
-  }
-
-  // ======================= 4. PLAY / PAUSE / RESTART ========================
-  Future<void> _togglePlayPause() async {
-    if (_inQuiz) return;
 
     if (_isPlayingStory) {
       await _storyPlayer.pause();
       setState(() => _isPlayingStory = false);
     } else {
-      await _storyPlayer.play(AssetSource(_audioAssetPath));
-      setState(() => _isPlayingStory = true);
+      await _playCurrentPage();
     }
   }
 
-  Future<void> _restart() async {
-    await _storyPlayer.stop();
-    await _quizPlayer.stop();
 
-    setState(() {
-      _isPlayingStory = false;
-      _currentPage = 0;
-      _currentParagraph = -1;
-      _currentWord = -1;
-      _position = Duration.zero;
-      _inQuiz = false;
-      _currentQuizIndex = -1;
-      _quizShown = List<bool>.filled(_quizzes.length, false);
-      _userAnswers = List<int?>.filled(_quizzes.length, null);
-    });
-
-    _pageController.jumpToPage(0);
-  }
-
-  // ======================= 5. QUIZZES =======================================
-  void _goToQuizForPage(int pageNumber) async {
-    final quizIndex = pageNumber - 1;
-    if (quizIndex < 0 || quizIndex >= _quizzes.length) return;
-    if (_quizShown[quizIndex]) return;
-
+  // =================== QUIZ ===================
+  void _goToQuizForPage(int page) async {
     await _storyPlayer.pause();
     setState(() {
       _inQuiz = true;
-      _currentQuizIndex = quizIndex;
-      _quizShown[quizIndex] = true;
+      _currentQuizIndex = page - 1;
+      _quizShown[_currentQuizIndex] = true;
       _isPlayingStory = false;
+      _quizLock = false;
     });
   }
 
   Future<void> _playQuizAudio() async {
-    final q = _quizzes[_currentQuizIndex];
     await _quizPlayer.stop();
-    await _quizPlayer.play(AssetSource(q.audioPath));
+    await _quizPlayer.play(
+      AssetSource(_quizzes[_currentQuizIndex].audioPath),
+    );
+  }
+
+  Future<void> _speak(String text) async {
+    try {
+      await _tts.stop();
+      await _tts.speak(text);
+    } catch (_) {}
+  }
+
+  Future<void> _showFeedbackDialog({
+    required bool correct,
+  }) async {
+    final title = correct ? "🎉 ¡Correcto!" : " Inténtalo otra vez";
+    final msg = correct ? "¡Muy bien seleccionaste la respuesta correcta!" : "Ups, me parece que esa no es la respuesta correcta.";
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text(title, style: const TextStyle(fontSize: 26)),
+        content: Text(msg, style: const TextStyle(fontSize: 20)),
+        actions: [
+          Center(
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(correct ? "Continuar" : "Reintentar",
+                  style: const TextStyle(fontSize: 18)),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _onSelectQuizOption(int index) async {
-    _userAnswers[_currentQuizIndex] = index;
-    final isLast = _currentQuizIndex == _quizzes.length - 1;
+    if (_quizLock) return;
+    _quizLock = true;
 
-    if (isLast) {
+    final quiz = _quizzes[_currentQuizIndex];
+    _userAnswers[_currentQuizIndex] = index;
+
+    // ================= INCORRECTO =================
+    if (index != quiz.correctIndex) {
+      setState(() {}); // pinta rojo
+
+      await _speak("Ups, me parece que esa no es la opcion correcta, Intentalo otra vez");
+      await _showFeedbackDialog(correct: false);
+
+      _quizLock = false;
+      return;
+    }
+
+    // ================= CORRECTO =================
+    setState(() {}); // pinta verde
+
+    await _speak("¡Muy bien! Has seleccionado la respuesta correcta");
+    await _showFeedbackDialog(correct: true);
+
+    final bool isLastQuiz =
+        _currentQuizIndex == _quizzes.length - 1;
+
+    // ================= ÚLTIMO QUIZ =================
+    if (isLastQuiz) {
+      _quizLock = false;
       await _showSummary();
       return;
     }
 
-    setState(() => _inQuiz = false);
-    await _quizPlayer.stop();
-    await _storyPlayer.seek(_resumePositionAfterQuiz);
-    await _storyPlayer.resume();
-    setState(() => _isPlayingStory = true);
+    // ================= VOLVER AL CUENTO (FIX REAL) =================
+    final int storyPage = _currentQuizIndex + 2;
+
+    // 1️⃣ salir del quiz (esto reconstruye el PageView)
+    setState(() {
+      _inQuiz = false;
+      _quizLock = false;
+      _isPlayingStory = false;
+      _currentParagraph = -1;
+      _currentWord = -1;
+    });
+
+    // 2️⃣ esperar a que el PageView EXISTA y recién moverlo
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      _pageController.jumpToPage(storyPage);
+
+      // sincronizar estado lógico
+      setState(() {
+        _currentPage = storyPage;
+      });
+    });
   }
 
+
+
   Future<void> _showSummary() async {
-    await _quizPlayer.stop();
-    await _storyPlayer.stop();
-
-    int correct = 0;
-    for (int i = 0; i < _quizzes.length; i++) {
-      final ua = _userAnswers[i];
-      if (ua != null && ua == _quizzes[i].correctIndex) correct++;
-    }
-    
-
     if (widget.student != null) {
-      final progressRepo = ProgressRepository();
-      print("💾 Guardando progreso:"
-      " studentId=${widget.student!.id},"
-      " activityId=${widget.activity.id}");
-      
-      await progressRepo.saveOrUpdate(
+      await ProgressRepository().saveOrUpdate(
         Progress(
           studentId: widget.student!.id!,
           activityId: widget.activity.id!,
           status: ProgressStatus.completed,
           attempts: 1,
           score: 100,
-          //_quizzes.isEmpty
-              //? null
-              //: (correct / _quizzes.length) * 100,
         ),
       );
     }
 
-
+    // Resumen detallado (como el que tenías antes)
+    int correct = 0;
+    for (int i = 0; i < _quizzes.length; i++) {
+      if (_userAnswers[i] == _quizzes[i].correctIndex) correct++;
+    }
 
     if (!mounted) return;
-
-    setState(() {
-      _inQuiz = false;
-      _currentQuizIndex = -1;
-    });
 
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text(
           "🎉 ¡Muy bien!",
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
         ),
         content: SingleChildScrollView(
           child: Column(
@@ -767,9 +545,9 @@ void _loadPrincipeRana() {
                 "Terminaste el cuento.\n\n"
                 "🏆 Obtuviste $correct / ${_quizzes.length} correctas",
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 18),
+                style: const TextStyle(fontSize: 20),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               ...List.generate(_quizzes.length, (i) {
                 final q = _quizzes[i];
                 final ua = _userAnswers[i];
@@ -787,11 +565,19 @@ void _loadPrincipeRana() {
                       Text(
                         "Pregunta ${i + 1}",
                         style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
                       ),
                       const SizedBox(height: 4),
-                      Text("Tu respuesta: ${ua == null ? "—" : q.options[ua]}"),
-                      Text("Correcta: ${q.options[q.correctIndex]}"),
+                      Text(
+                        "Tu respuesta: ${ua == null ? "—" : q.options[ua]}",
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                      Text(
+                        "Correcta: ${q.options[q.correctIndex]}",
+                        style: const TextStyle(fontSize: 18),
+                      ),
                     ],
                   ),
                 );
@@ -806,7 +592,7 @@ void _loadPrincipeRana() {
                 Navigator.pop(context); // cierra dialog
                 Navigator.pop(context); // vuelve a cards
               },
-              child: const Text("Volver a los cuentos"),
+              child: const Text("Volver a los cuentos", style: TextStyle(fontSize: 18)),
             ),
           ),
         ],
@@ -814,253 +600,217 @@ void _loadPrincipeRana() {
     );
   }
 
-  // ======================= 6. UI GENERAL ====================================
+  // =================== UI ===================
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
+    // tamaños responsivos (evita overflow en horizontal)
+    final titleSize = (size.width * 0.075).clamp(28.0, 44.0);
+    final storyWordSize = (size.width * 0.055).clamp(24.0, 36.0);
+    final quizQuestionSize = (size.width * 0.060).clamp(24.0, 38.0);
+    final quizOptionSize = (size.width * 0.055).clamp(22.0, 34.0);
+
     return Scaffold(
-      backgroundColor: Colors.blue.shade50,
       appBar: AppBar(
-        title: Text(_storyTitle),
-        backgroundColor: Colors.lightBlueAccent,
-        foregroundColor: Colors.white,
+        title: Text(
+          _storyTitle,
+          style: TextStyle(fontSize: (size.width * 0.05).clamp(18.0, 26.0)),
+        ),
       ),
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        child: _inQuiz ? _buildQuizScreen() : _buildStoryScreen(),
+      body: SafeArea(
+        child: _inQuiz
+            ? _buildQuiz(quizQuestionSize, quizOptionSize)
+            : _buildStory(titleSize, storyWordSize),
       ),
     );
   }
 
-  // ---------------- UI CUENTO ----------------
-  Widget _buildStoryScreen() {
+  Widget _buildStory(double titleSize, double wordSize) {
     return Column(
-      key: const ValueKey('story'),
       children: [
         Expanded(
           child: Container(
-            margin: const EdgeInsets.all(20),
-            padding: const EdgeInsets.all(22),
+            margin: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(26),
+              borderRadius: BorderRadius.circular(20),
               boxShadow: const [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 12,
-                  offset: Offset(0, 5),
-                ),
+                BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4)),
               ],
             ),
             child: PageView.builder(
               controller: _pageController,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: _pages.length,
-              itemBuilder: (_, page) {
-                if (page == 0) return _buildCover();
-                return _buildStoryPage(page);
+              onPageChanged: (i) {
+                _storyPlayer.stop();
+                setState(() {
+                  _currentPage = i;
+                  _currentParagraph = -1;
+                  _currentWord = -1;
+                });
               },
+              itemCount: _pages.length,
+              itemBuilder: (_, i) => i == 0 ? _buildCover(titleSize) : _buildPage(i, wordSize),
             ),
           ),
         ),
-        const SizedBox(height: 10),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton.icon(
               onPressed: _togglePlayPause,
-              icon: Icon(
-                  _isPlayingStory ? Icons.pause : Icons.play_arrow),
-              label: Text(_isPlayingStory ? "Pausar" : "Leer"),
-            ),
-            const SizedBox(width: 16),
-            ElevatedButton.icon(
-              onPressed: _restart,
-              icon: const Icon(Icons.restart_alt),
-              label: const Text("Reiniciar"),
+              icon: Icon(_isPlayingStory ? Icons.pause : Icons.play_arrow),
+              label: Text(
+                _isPlayingStory ? "Pausar" : "Leer",
+                style: const TextStyle(fontSize: 18),
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
       ],
     );
   }
 
-  Widget _buildCover() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            _storyTitle,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          SizedBox(height: 20),
-
-          Text(
-            _storyAuthor,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 20,
-              color: Colors.black54,
-            ),
-          ),
-
-          SizedBox(height: 6),
-
-          Text(
-            _storyVersion,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 18,
-              color: Colors.black45,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-
-  Widget _buildStoryPage(int pageIndex) {
-    final paragraphs = _pages[pageIndex];
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: List.generate(paragraphs.length, (i) {
-          return Container(
-            margin: const EdgeInsets.only(bottom: 18),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: _buildParagraphText(pageIndex, i),
-          );
-        }),
-      ),
-    );
-  }
-
-  Widget _buildParagraphText(int pageIndex, int paragraphIndex) {
-    final words = _pageWords[pageIndex][paragraphIndex];
-    final active = pageIndex == _currentPage &&
-        paragraphIndex == _currentParagraph;
-
-    return Wrap(
-      alignment: WrapAlignment.start,
-      runSpacing: 4,
-      children: List.generate(words.length, (i) {
-        final highlight = active && i == _currentWord;
-        return Text(
-          '${words[i]} ',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight:
-                highlight ? FontWeight.bold : FontWeight.normal,
-            backgroundColor:
-                highlight ? Colors.yellow[300] : Colors.transparent,
-          ),
-        );
-      }),
-    );
-  }
-
-  // ---------------- UI QUIZ ----------------
-Widget _buildQuizScreen() {
-  final q = _quizzes[_currentQuizIndex];
-  final selected = _userAnswers[_currentQuizIndex];
-
-  return SafeArea(
-    key: const ValueKey('quiz'),
-    child: SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 500),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(26),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 14,
-                  offset: Offset(0, 5),
-                ),
-              ],
-            ),
-
+  Widget _buildCover(double titleSize) => Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(12),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 650),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "Pregunta de la página ${_currentQuizIndex + 1}",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: Colors.black54,
-                  ),
+                  _storyTitle,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: titleSize, fontWeight: FontWeight.bold),
                 ),
+                const SizedBox(height: 16),
+                Text(_storyAuthor, textAlign: TextAlign.center, style: const TextStyle(fontSize: 22)),
+                const SizedBox(height: 6),
+                Text(_storyVersion, textAlign: TextAlign.center, style: const TextStyle(fontSize: 20)),
+              ],
+            ),
+          ),
+        ),
+      );
 
-                const SizedBox(height: 12),
+  // ✅ palabra por palabra
+  Widget _buildPage(int pageIndex, double wordSize) {
+    final paragraphs = _pageWords[pageIndex];
 
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(10),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 750),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: List.generate(paragraphs.length, (p) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 10,
+                children: List.generate(paragraphs[p].length, (w) {
+                  final highlight = pageIndex == _currentPage &&
+                      p == _currentParagraph &&
+                      w == _currentWord;
+
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: highlight ? Colors.yellow[300] : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      paragraphs[p][w],
+                      style: TextStyle(
+                        fontSize: wordSize,
+                        height: 1.25,
+                        fontWeight: highlight ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuiz(double qSize, double optSize) {
+    final q = _quizzes[_currentQuizIndex];
+    final selected = _userAnswers[_currentQuizIndex];
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 650),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: const [
+                BoxShadow(color: Colors.black26, blurRadius: 12, offset: Offset(0, 4)),
+              ],
+            ),
+            child: Column(
+              children: [
+                Text(
+                  "Pregunta ${_currentQuizIndex + 1}",
+                  style: const TextStyle(fontSize: 18, color: Colors.black54),
+                ),
+                const SizedBox(height: 10),
                 Text(
                   q.question,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: qSize, fontWeight: FontWeight.bold),
                 ),
-
-                const SizedBox(height: 20),
-
+                const SizedBox(height: 10),
                 IconButton(
                   onPressed: _playQuizAudio,
                   icon: const Icon(Icons.volume_up, size: 40),
                 ),
+                const SizedBox(height: 10),
+                ...List.generate(q.options.length, (i) {
+                  final isWrong = selected != null && selected == i && i != q.correctIndex;
+                  final isCorrect = selected == i && i == q.correctIndex;
 
-                const SizedBox(height: 20),
-
-                Column(
-                  children: List.generate(q.options.length, (i) {
-                    final isSel = selected == i;
-
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 14),
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor:
-                              isSel ? Colors.orangeAccent : Colors.lightBlue,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        onPressed: () => _onSelectQuizOption(i),
-                        child: Text(
-                          q.options[i],
-                          style: const TextStyle(
-                            fontSize: 20,
-                            color: Colors.white,
-                          ),
+                  return Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: isCorrect
+                            ? Colors.green
+                            : isWrong
+                                ? Colors.red
+                                : Colors.blue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                    );
-                  }),
-                ),
+                      onPressed: () => _onSelectQuizOption(i),
+                      child: Text(
+                        q.options[i],
+                        style: TextStyle(fontSize: optSize, color: Colors.white),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                }),
               ],
             ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

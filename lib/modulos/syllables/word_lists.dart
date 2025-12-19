@@ -60,7 +60,7 @@ final List<Map<String, dynamic>> objectsHard = [
   {
     'word': 'MESA',
     'image': 'assets/imagenes/ordenar_mesa.jpg',
-    'syllables': ['M', 'E', 'S', 'A'],
+    'syllables': ['E', 'S', 'M', 'A'],
     'correct': ['M', 'E', 'S', 'A'],
   },
 ];
